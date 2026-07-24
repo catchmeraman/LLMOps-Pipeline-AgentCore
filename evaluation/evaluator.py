@@ -21,6 +21,7 @@ class AgentEvaluator:
     def __init__(self):
         self.results = []
         self.run_id = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        self.judge_model = "us.amazon.nova-premier-v1:0"
 
     def score_response(self, question: str, response: str, expected_context: str) -> dict:
         """Score a single response across all evaluation dimensions."""
