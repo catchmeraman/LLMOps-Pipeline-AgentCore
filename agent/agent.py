@@ -9,7 +9,7 @@ from agent.tools.sns_tools import send_notification
 
 MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-6")
 REGION = os.environ.get("AWS_REGION", "us-east-1")
-GUARDRAIL_ID = os.environ.get("GUARDRAIL_ID", "efx0nvwgqber")
+GUARDRAIL_ID = os.environ.get("GUARDRAIL_ID", "<YOUR_GUARDRAIL_ID>")
 
 SYSTEM_PROMPT = """You are a production DevOps AI Agent managing AWS infrastructure.
 

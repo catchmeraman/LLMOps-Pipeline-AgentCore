@@ -16,7 +16,7 @@ import sys
 from datetime import datetime
 
 # Agent configuration
-AGENT_RUNTIME_ID = "llmops_agent-jgErJt74Gu"
+AGENT_RUNTIME_ID = "<YOUR_RUNTIME_ID>"
 REGION = "us-east-1"
 ENDPOINT_NAME = "DEFAULT"
 

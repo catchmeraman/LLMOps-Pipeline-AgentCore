@@ -3,7 +3,7 @@ import os
 import boto3
 from strands import tool
 
-SNS_TOPIC_ARN = os.environ.get("SNS_TOPIC_ARN", "arn:aws:sns:us-east-1:114805761158:it-ops-agent-alerts")
+SNS_TOPIC_ARN = os.environ.get("SNS_TOPIC_ARN", "arn:aws:sns:us-east-1:<YOUR_ACCOUNT_ID>:it-ops-agent-alerts")
 
 
 @tool

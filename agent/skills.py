@@ -10,8 +10,8 @@ AGENT_SKILLS = {
         "version": "1.0.0",
         "description": "Production DevOps AI Agent with monitoring, remediation, and notification capabilities",
         "model_id": "us.anthropic.claude-sonnet-4-6",
-        "guardrail_id": "efx0nvwgqber",
-        "runtime_id": "llmops_agent-jgErJt74Gu"
+        "guardrail_id": "<YOUR_GUARDRAIL_ID>",
+        "runtime_id": "<YOUR_RUNTIME_ID>"
     },
     "skills": [
         {
