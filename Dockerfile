@@ -5,13 +5,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY agent/ ./agent/
-
-ENV PYTHONPATH=/app
+COPY agent/main.py agent/agent.py agent/observability.py agent/memory.py agent/skills.py ./
+COPY agent/tools/ ./tools/
 
 EXPOSE 8080
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8080/')"
-
-CMD ["python", "-m", "agent.main"]
+CMD ["python", "main.py"]

@@ -1,15 +1,14 @@
-"""LLMOps Agent — Agent definition with Strands + Claude."""
+"""LLMOps Agent — Agent definition with Strands + Claude Sonnet 4."""
 import os
 from strands import Agent
 from strands.models import BedrockModel
-from agent.tools.cloudwatch_tools import get_alarms, get_metric_statistics
-from agent.tools.ec2_tools import describe_instances, manage_instance
-from agent.tools.ssm_tools import run_command
-from agent.tools.sns_tools import send_notification
+from tools.cloudwatch_tools import get_alarms, get_metric_statistics
+from tools.ec2_tools import describe_instances, manage_instance
+from tools.ssm_tools import run_command
+from tools.sns_tools import send_notification
 
-MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-6")
+MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.amazon.nova-pro-v1:0")
 REGION = os.environ.get("AWS_REGION", "us-east-1")
-GUARDRAIL_ID = os.environ.get("GUARDRAIL_ID", "<YOUR_GUARDRAIL_ID>")
 
 SYSTEM_PROMPT = """You are a production DevOps AI Agent managing AWS infrastructure.
 
@@ -22,15 +21,7 @@ SYSTEM_PROMPT = """You are a production DevOps AI Agent managing AWS infrastruct
 ## Operating Rules:
 - ALWAYS diagnose before taking action
 - NEVER execute destructive commands without explaining why first
-- LOG all remediation actions for audit trail
-- Provide clear summaries of findings and actions
-
-## Response Format:
-1. Acknowledge the request
-2. Run diagnostics (show data)
-3. Analyze root cause
-4. Recommend/take action
-5. Verify and summarize
+- Provide clear summaries of findings and actions taken
 """
 
 
