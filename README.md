@@ -1421,6 +1421,38 @@ CAPTURE TRACES → EVALUATE (LLM-as-Judge) → RECOMMEND → A/B TEST → SHIP W
 
 ---
 
+## 📸 Console Screenshots (Ambassador Evidence)
+
+> Add your screenshots to the `screenshots/` folder. See `screenshots/README.md` for capture instructions.
+
+### Runtime & Deployment
+![Runtime Dashboard - v6 READY](screenshots/01_runtime_dashboard.png)
+![Runtime Configuration](screenshots/02_runtime_config.png)
+![Version History v1→v6](screenshots/03_runtime_versions.png)
+
+### Security & Guardrails
+![Guardrail Configuration](screenshots/05_guardrail_config.png)
+![Prompt Injection BLOCKED](screenshots/08_guardrail_test_blocked.png)
+
+### Evaluation (LLM-as-Judge with Nova Pro)
+![Evaluators List (9 active)](screenshots/09_evaluators_list.png)
+![Custom Evaluator - Nova Pro Model Config](screenshots/10_custom_evaluator_config.png)
+![Online Evaluation Config](screenshots/11_online_eval_config.png)
+![Evaluation Scores](screenshots/12_evaluation_results.png)
+
+### CI/CD Pipeline
+![CodeBuild History - 6 Green Builds](screenshots/13_codebuild_history.png)
+![ECR Docker Images](screenshots/15_ecr_images.png)
+
+### Observability
+![CloudWatch Invocation Logs](screenshots/16_cloudwatch_logs.png)
+
+### Infrastructure
+![IAM Role Permissions](screenshots/18_iam_role_permissions.png)
+![DynamoDB Memory Table](screenshots/19_dynamodb_memory.png)
+
+---
+
 ## ✅ FINAL DEPLOYMENT STATUS
 
 ### Models (All AWS Credits Covered)
