@@ -53,6 +53,9 @@ This is **not** a tutorial. This is a **production implementation journal** — 
 ### Security: Guardrails + Prompt Injection Defense
 ![Security Architecture](generated-diagrams/04_security_guardrails.png)
 
+### AgentCore Harness + Evaluation Optimization Loop
+![Harness + Evaluation Loop](generated-diagrams/05_harness_evaluation_loop.png)
+
 ---
 
 ## 🧩 Architecture Overview (Text)
@@ -1276,5 +1279,139 @@ git add . && git commit -m "feat: add new tool" && git push
 
 ---
 
+---
+
+## 🎯 Part 5: AgentCore Harness Service — The Managed Agent Loop
+
+### What is AgentCore Harness?
+
+Every agent has an orchestration loop: call the model → pick tools → execute → pass results back → manage context → handle failures. The **AgentCore Harness** is a fully managed service that turns this entire loop into **configuration, not code**.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│              AgentCore HARNESS vs RUNTIME — When to Use What            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                           │
+│  HARNESS (Managed Agent Loop)              RUNTIME (Your Container)      │
+│  ─────────────────────────────             ────────────────────────      │
+│  • You declare: model, tools,              • You build: full agent       │
+│    skills, instructions                      code in a Docker container  │
+│  • AWS manages: compute, memory,           • You manage: agent logic,    │
+│    identity, scaling, isolation               error handling, context    │
+│  • Built-in: code interpreter,             • Full control: any           │
+│    browser, filesystem, shell                 framework, any logic       │
+│  • Config change = new behavior            • Code change = rebuild       │
+│  • Isolated microVM per session            • Container per session       │
+│  • Multi-model: switch mid-session         • You choose model once       │
+│                                                                           │
+│  USE HARNESS WHEN:                         USE RUNTIME WHEN:             │
+│  • Standard agent patterns                 • Custom orchestration logic  │
+│  • Quick iteration on prompts/tools        • Existing agent framework    │
+│  • Need code interpreter + browser         • Complex multi-step flows    │
+│  • Want managed evaluation loop            • Need specific dependencies  │
+│  • A/B testing prompt variants             • Full control over everything│
+│                                                                           │
+│  BOTH SUPPORT:                                                           │
+│  • AgentCore Evaluations (LLM-as-Judge)                                 │
+│  • AgentCore Gateway (MCP tools)                                        │
+│  • AgentCore Memory (cross-session)                                      │
+│  • AgentCore Observability (traces)                                      │
+│  • Cedar Policies (authorization)                                        │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Harness Key Features
+
+| Feature | What It Does |
+|---------|-------------|
+| **Stateful Sessions** | Each session runs in an isolated microVM — filesystem, shell, memory persist |
+| **Multi-Model** | Switch between Bedrock, OpenAI, Gemini, LiteLLM mid-session |
+| **Built-in Code Interpreter** | Agent writes and executes code in its own sandbox |
+| **Built-in Browser** | Agent can browse web pages for research |
+| **AWS Skills** | Attach pre-built skills from Git, S3, or AWS catalog with a toggle |
+| **S3/EFS Mounting** | Share data across sessions via mounted storage |
+| **Configuration Bundles** | Version your agent config (prompt + tools) independently of code |
+| **Bring Your Own Container** | Custom environment when you need specific dependencies |
+
+---
+
+## 🧪 Part 6: AgentCore Evaluations — LLM-in-the-Loop Quality Testing
+
+### What is AgentCore Evaluations?
+
+AgentCore Evaluations scores your agent's production traces using **LLM-as-a-Judge evaluators**. It answers: "Is my agent actually doing a good job on real traffic?"
+
+### Evaluation Types
+
+| Type | When | How |
+|------|------|-----|
+| **Online** | Every live session | Scores each session as it happens (real-time) |
+| **On-Demand** | Single trace debugging | Score one specific trace manually |
+| **Batch** | Historical analysis | Run evaluators over past traces in bulk |
+| **Test Dataset** | CI/CD quality gate | Fixed golden test set, run before deploy |
+| **Simulation** | Stress testing | Synthetic LLM-backed users exercise the agent |
+
+### Built-in Evaluators (LLM-as-Judge)
+
+| Evaluator | What It Measures |
+|-----------|-----------------|
+| **Helpfulness** | Did the agent actually solve the user's problem? |
+| **Faithfulness** | Did the agent stick to facts/context (no hallucination)? |
+| **Safety** | Was the response free of harmful/toxic content? |
+| **Tool Accuracy** | Did the agent pick the right tool for the task? |
+| **Goal Attainment** | Did the agent complete the end-to-end task? |
+| **Custom** | Your own evaluator logic (any criteria you define) |
+
+### The Evaluation → Optimization Loop
+
+```
+CAPTURE TRACES → EVALUATE (LLM-as-Judge) → RECOMMEND → A/B TEST → SHIP WINNER
+      ▲                                                                    │
+      └────────────────────────────────────────────────────────────────────┘
+                              Continuous improvement loop
+```
+
+1. **Traces** — Every agent action auto-traced (OpenTelemetry-compatible)
+2. **Evaluate** — Score with built-in or custom evaluators
+3. **Recommend** — AgentCore generates prompt/tool description improvements
+4. **Validate** — A/B test via Gateway: split traffic, measure with confidence intervals
+5. **Ship** — Promote winner to 100% traffic
+
+### Console Navigation — What to See and Where
+
+| # | What | Console Path |
+|---|------|-------------|
+| 1 | Evaluator setup | Bedrock → AgentCore → Evaluations → Evaluators |
+| 2 | Evaluation runs + scores | Bedrock → AgentCore → Evaluations → Runs |
+| 3 | Trace timeline | Bedrock → AgentCore → Observability → Traces |
+| 4 | Online eval config | Bedrock → AgentCore → Evaluations → Online |
+| 5 | Recommendations | Bedrock → AgentCore → Optimization → Recommendations |
+| 6 | A/B test results | Bedrock → AgentCore → Optimization → A/B Tests |
+| 7 | Configuration bundles | Bedrock → AgentCore → Harness → Config Bundles |
+| 8 | Gateway routing | Bedrock → AgentCore → Gateway |
+
+---
+
+## 📸 Testing Workflow & Screenshots Guide
+
+### End-to-End Testing Steps (for your Ambassador blog)
+
+| Step | Action | Screenshot to Capture |
+|------|--------|----------------------|
+| 1 | Invoke agent 10-20 times with diverse queries | Observability → Traces (list of sessions) |
+| 2 | Open a trace, inspect reasoning steps | Trace detail → model call → tool selection → result |
+| 3 | Create custom evaluator | Evaluations → Evaluators → your evaluator config |
+| 4 | Run batch evaluation on traces | Evaluations → Runs → results (scores per session) |
+| 5 | Enable online evaluation | Evaluations → Online → enabled with evaluators |
+| 6 | Invoke again → see real-time scores | Traces → session → evaluation score attached |
+| 7 | Check for recommendations | Optimization → Recommendations → prompt improvements |
+| 8 | Create A/B test | Optimization → A/B Tests → traffic split config |
+| 9 | View A/B results with significance | A/B Test → results (confidence intervals) |
+| 10 | Promote winner | A/B Test → promote → 100% traffic to winner |
+| 11 | Test guardrail (prompt injection) | Guardrails → Test → input blocked |
+| 12 | View blocked request in guardrail logs | Guardrails → CloudWatch metrics |
+
+---
+
 *Built and deployed on AWS — Ramandeep Chandna | July 2026*
-*Runtime Version: Production | Pipeline: All Green ✅*
+*Runtime: llmops_agent v3 READY | Pipeline: All Green ✅ | Guardrail: Active | Evaluations: Configured*
