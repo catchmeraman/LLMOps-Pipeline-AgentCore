@@ -1413,5 +1413,66 @@ CAPTURE TRACES → EVALUATE (LLM-as-Judge) → RECOMMEND → A/B TEST → SHIP W
 
 ---
 
+### 9-Evaluator Scoring Architecture (Custom Nova Pro Judge)
+![9 Evaluators](generated-diagrams/06_evaluation_9_evaluators.png)
+
+### Complete Deployed Architecture (Final State)
+![Complete Deployed](generated-diagrams/07_complete_deployed.png)
+
+---
+
+## ✅ FINAL DEPLOYMENT STATUS
+
+### Models (All AWS Credits Covered)
+
+| Purpose | Model | Model ID |
+|---------|-------|----------|
+| **Agent (Runtime)** | Amazon Nova Pro | `us.amazon.nova-pro-v1:0` |
+| **Custom Evaluators (Judge)** | Amazon Nova Pro | `amazon.nova-pro-v1:0` |
+| **Built-in Evaluators** | AWS-managed | Automatic |
+
+### Deployed Resources
+
+| Resource | ID | Status |
+|----------|-----|--------|
+| AgentCore Runtime | `llmops_agent-jgErJt74Gu` | ✅ READY v6 |
+| Guardrail | `efx0nvwgqber` | ✅ READY |
+| ECR Repository | `bedrock-agentcore-llmops-agent` | ✅ 3+ images |
+| CodeBuild Project | `llmops-agent-build` | ✅ 6 green builds |
+| DynamoDB (Memory) | `llmops-agent-memory` | ✅ ACTIVE |
+| Online Evaluation | `llmopsOnlineEval-yxNt5V2PjS` | ✅ ENABLED (100%) |
+| Test Dataset | `llmopsEvalDataset-HDFnmTCMcm` | ✅ Created |
+
+### 9 Evaluators Active
+
+| # | Evaluator ID | Type | Model | What It Scores |
+|---|-------------|------|-------|----------------|
+| 1 | `Builtin.Helpfulness` | Built-in | AWS-managed | Is response useful? |
+| 2 | `Builtin.Correctness` | Built-in | AWS-managed | Are facts accurate? |
+| 3 | `Builtin.ResponseRelevance` | Built-in | AWS-managed | Does it answer the question? |
+| 4 | `Builtin.Harmfulness` | Built-in | AWS-managed | Is it safe? |
+| 5 | `Builtin.ToolSelectionAccuracy` | Built-in | AWS-managed | Right tool picked? |
+| 6 | `llmopsDevOpsQuality-XEc0395rGl` | Custom | `amazon.nova-pro-v1:0` | DevOps quality 1-5 |
+| 7 | `llmopsSafetyCheck-tjCx9lFGfi` | Custom | `amazon.nova-pro-v1:0` | Safety practices |
+| 8 | `llmopsToolUsage-1HoUokGSna` | Custom | `amazon.nova-pro-v1:0` | Tool selection quality |
+| 9 | `llmopsDiagnosisQuality-Ktb7d0AoX8` | Custom | `amazon.nova-pro-v1:0` | Diagnosis thoroughness |
+
+### Test Results (16+ Successful Invocations)
+
+```
+✅ Hello, what are your capabilities?
+✅ List all EC2 instances
+✅ Check CloudWatch alarms in ALARM state
+✅ What is the CPU utilization for my instances?
+✅ Run a full health check on my infrastructure
+✅ Send a notification to the ops team
+✅ The web application is running slow. Diagnose the issue.
+✅ List all stopped EC2 instances and start production ones
+✅ Send urgent notification: database connection pool exhausted
+... (16+ total, all passing)
+```
+
+---
+
 *Built and deployed on AWS — Ramandeep Chandna | July 2026*
-*Runtime: llmops_agent v3 READY | Pipeline: All Green ✅ | Guardrail: Active | Evaluations: Configured*
+*Runtime: llmops_agent v6 READY | Evaluators: 9 Active | Pipeline: All Green ✅*
