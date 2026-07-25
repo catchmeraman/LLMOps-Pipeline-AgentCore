@@ -1558,6 +1558,55 @@ OTEL_RESOURCE_ATTRIBUTES=service.name=llmops_agent
 
 ---
 
+## 💰 Part 8: Cost Optimization — Nova Pro vs Claude Sonnet
+
+### Cost-Optimized Model Routing
+![Cost Optimization](generated-diagrams/09_cost_optimization_routing.png)
+
+### Why Nova Pro (Not Claude Sonnet)
+
+| Model | Input $/1M | Output $/1M | Monthly (1K calls) | AWS Credits |
+|-------|-----------|-------------|-------------------|-------------|
+| Claude Sonnet 4 | $3.00 | $15.00 | ~$50-80 | ❌ Not covered |
+| **Nova Pro (our choice)** | **$0.80** | **$3.20** | **~$12-20** | **✅ Covered** |
+| Nova Lite (cheapest) | $0.06 | $0.24 | ~$1-2 | ✅ Covered |
+
+**Result: 78% cost reduction vs Claude Sonnet — fully covered by AWS credits.**
+
+### Model Routing Strategy
+
+```python
+def select_model(prompt: str) -> str:
+    """Route simple queries to Lite, complex to Pro."""
+    simple_patterns = ["list", "status", "health", "what can you"]
+    if any(p in prompt.lower() for p in simple_patterns) and len(prompt) < 100:
+        return "us.amazon.nova-lite-v1:0"    # $0.06/1M
+    else:
+        return "us.amazon.nova-pro-v1:0"     # $0.80/1M
+```
+
+| Query Type | Traffic | Model | Cost/1M |
+|-----------|---------|-------|---------|
+| Simple (list, status) | ~70% | Nova Lite | $0.06 |
+| Complex (diagnose, fix) | ~30% | Nova Pro | $0.80 |
+| **Blended** | 100% | Mix | **~$0.28** |
+
+### Evaluator: Keep Nova Pro (Don't Cheap Out on Judge)
+
+A cheap judge (Nova Lite) gives unreliable scores → worse than no evaluation. The judge must be **same quality or higher** than the agent.
+
+### Monthly Cost (This Deployment)
+
+| Component | Cost |
+|-----------|------|
+| AgentCore Runtime (idle) | $0 |
+| Nova Pro (agent + eval) | ~$7-20 |
+| CodeBuild | ~$5 |
+| DynamoDB + CloudWatch + ECR | ~$4 |
+| **TOTAL** | **~$16-30/month (all AWS credits)** |
+
+---
+
 ### Models (All AWS Credits Covered)
 
 | Purpose | Model | Model ID |
