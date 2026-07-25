@@ -4,7 +4,7 @@ Defines test cases, scoring rubrics, thresholds, and judge model settings.
 """
 
 # Judge model for LLM-as-Judge evaluation
-JUDGE_MODEL_ID = "us.amazon.nova-premier-v1:0"
+JUDGE_MODEL_ID = "us.amazon.nova-pro-v1:0"
 JUDGE_TEMPERATURE = 0.0  # Deterministic scoring
 JUDGE_MAX_TOKENS = 200
 

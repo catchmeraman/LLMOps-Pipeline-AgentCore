@@ -9,7 +9,7 @@ AGENT_SKILLS = {
         "agent_name": "llmops-agent",
         "version": "1.0.0",
         "description": "Production DevOps AI Agent with monitoring, remediation, and notification capabilities",
-        "model_id": "us.anthropic.claude-sonnet-4-6",
+        "model_id": "us.amazon.nova-pro-v1:0",
         "guardrail_id": "<YOUR_GUARDRAIL_ID>",
         "runtime_id": "<YOUR_RUNTIME_ID>"
     },
