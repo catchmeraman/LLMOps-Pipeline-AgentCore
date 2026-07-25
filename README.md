@@ -1455,6 +1455,53 @@ CAPTURE TRACES → EVALUATE (LLM-as-Judge) → RECOMMEND → A/B TEST → SHIP W
 
 ## ✅ FINAL DEPLOYMENT STATUS
 
+### 🔥 Challenge: Getting Evaluation Logs to Work (Troubleshooting Journey)
+
+This was the hardest part. Here's exactly what happened and how I fixed it:
+
+**Problem:** AgentCore Online Evaluation was configured (ACTIVE + ENABLED) but **zero evaluation scores appeared** in the results log group — even after 20+ successful invocations.
+
+**Root Cause Discovery (Step by Step):**
+
+| Step | What I Tried | Result |
+|------|-------------|--------|
+| 1 | Created online eval config with 9 evaluators | ✅ Config created, status: ENABLED |
+| 2 | Invoked agent 16+ times | ✅ All invocations succeeded |
+| 3 | Checked eval results log group | ❌ 0 streams, no scores |
+| 4 | Waited 15 minutes | ❌ Still nothing |
+| 5 | Compared with Harness runtime logs | 💡 Harness has `[trace_id=... span_id=... resource.service.name=...]` |
+| 6 | Checked our container logs | ❌ Plain text: `[INFO] Received: ...` — NO trace context |
+| 7 | Realized: evaluator reads **OpenTelemetry traces**, not plain logs | 💡 **ROOT CAUSE FOUND** |
+
+**The Fix:**
+
+The AgentCore evaluator parses **structured OpenTelemetry traces** (with trace_id, span_id, service.name). Our container was just printing plain Python logs.
+
+Per AWS docs, for container runtimes you need:
+1. Add `aws-opentelemetry-distro>=0.10.0` to `requirements.txt`
+2. Change Dockerfile CMD to: `opentelemetry-instrument python main.py`
+
+That's it! The ADOT SDK automatically:
+- Instruments Strands agent framework
+- Instruments all Bedrock API calls
+- Instruments tool invocations
+- Exports traces to CloudWatch in the format evaluators expect
+
+**Before (no traces — evaluator can't score):**
+```
+2026-07-24 18:02:44 [INFO] llmops-agent: Received: List all EC2 instances
+2026-07-24 18:02:48 [INFO] llmops-agent: Completed successfully
+```
+
+**After (with OTEL — evaluator can now score):**
+```
+2026-07-25 18:41:34 INFO [llmops-agent] [main.py:56] [trace_id=0 span_id=0 resource.service.name=llmops_agent.DEFAULT] - LLMOps Agent starting
+```
+
+**Key Lesson:** For AgentCore container runtimes, OpenTelemetry is NOT automatic — you must add the ADOT SDK. For Harness-based agents, it's built-in. This is documented but easy to miss.
+
+---
+
 ### Models (All AWS Credits Covered)
 
 | Purpose | Model | Model ID |
