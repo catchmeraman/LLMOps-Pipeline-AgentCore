@@ -1502,6 +1502,62 @@ That's it! The ADOT SDK automatically:
 
 ---
 
+### 🔥 Challenge 2: OTLP Trace Export — 403 Forbidden
+
+**Problem:** After enabling OTEL, traces were generated (`trace_id=6a65058e91b1cdc7e080432528816b32 trace_sampled=True`) but export failed:
+```
+ERROR [opentelemetry.exporter.otlp.proto.http.trace_exporter] - Failed to export span batch code: 403, reason: Forbidden
+```
+
+**Root Cause:** The IAM execution role didn't have permission to write telemetry to AgentCore's observability backend.
+
+**Fix:** Added IAM policy `AgentCoreObservabilityExport`:
+```json
+{
+  "Effect": "Allow",
+  "Action": [
+    "bedrock-agentcore:PutTelemetry",
+    "bedrock-agentcore:PutSpans",
+    "bedrock-agentcore:PostSpans",
+    "xray:PutTraceSegments",
+    "xray:PutTelemetryRecords"
+  ],
+  "Resource": "*"
+}
+```
+
+### 🔥 Challenge 3: Environment Variables for OTEL Configuration
+
+**Problem:** Even with ADOT SDK in requirements and `opentelemetry-instrument` in CMD, traces showed `trace_sampled=False` and weren't being exported.
+
+**Fix:** Set these environment variables on the AgentCore runtime:
+```
+AGENT_OBSERVABILITY_ENABLED=true
+OTEL_TRACES_EXPORTER=otlp
+OTEL_LOGS_EXPORTER=otlp
+OTEL_PYTHON_DISTRO=aws_distro
+OTEL_PYTHON_CONFIGURATOR=aws_configurator
+OTEL_PROPAGATORS=baggage,xray,tracecontext
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+OTEL_RESOURCE_ATTRIBUTES=service.name=llmops_agent
+```
+
+**Result after all 3 fixes applied:**
+```
+[trace_id=6a65058e91b1cdc7e080432528816b32 span_id=152dfa54c3db07b0 resource.service.name=llmops_agent trace_sampled=True]
+- Creating Strands MetricsClient (TRACE ACTIVE!)
+```
+
+### Complete Fix Summary (3 steps for container runtime tracing):
+
+| Step | What | Why |
+|------|------|-----|
+| 1 | Add `aws-opentelemetry-distro>=0.10.0` to requirements.txt | Installs ADOT SDK |
+| 2 | CMD: `opentelemetry-instrument python main.py` | Auto-instruments Strands + Bedrock |
+| 3 | Set OTEL env vars on runtime + add IAM `PutTelemetry` permission | Enables export to AgentCore backend |
+
+---
+
 ### Models (All AWS Credits Covered)
 
 | Purpose | Model | Model ID |
