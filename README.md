@@ -1641,7 +1641,7 @@ A cheap judge (Nova Lite) gives unreliable scores → worse than no evaluation. 
 | 8 | `llmopsToolUsage-1HoUokGSna` | Custom | `amazon.nova-pro-v1:0` | Tool selection quality |
 | 9 | `llmopsDiagnosisQuality-Ktb7d0AoX8` | Custom | `amazon.nova-pro-v1:0` | Diagnosis thoroughness |
 
-### Test Results (16+ Successful Invocations)
+### Test Results (20+ Successful Invocations)
 
 ```
 ✅ Hello, what are your capabilities?
@@ -1653,8 +1653,71 @@ A cheap judge (Nova Lite) gives unreliable scores → worse than no evaluation. 
 ✅ The web application is running slow. Diagnose the issue.
 ✅ List all stopped EC2 instances and start production ones
 ✅ Send urgent notification: database connection pool exhausted
-... (16+ total, all passing)
+... (20+ total, all passing)
 ```
+
+### 📊 9-Evaluator Scoring — Live Evaluation Output
+
+```
+======================================================================
+🧪 FULL 9-EVALUATOR SCORING — LLM-as-Judge
+   Agent: Nova Pro | Judge: Nova Pro | Evaluators: 9
+======================================================================
+
+  📋 Test: The web server on i-051e86cc20c88aa4a seems slow.
+           Check CPU metrics, look for alarms, and tell me what is wrong.
+  📋 Expected: Agent should check alarms, get CPU metrics, diagnose systematically
+
+  📤 Invoking agent...
+  ✅ Agent responded (8187ms) — tools executed server-side with trace_id
+
+──────────────────────────────────────────────────────────────────────
+  🏆 SCORING WITH 9 EVALUATORS (Judge: Nova Pro)
+──────────────────────────────────────────────────────────────────────
+  ❌ Helpfulness               → 2/5  Tool execution occurred but streaming response
+  ⚠️ Correctness               → 3/5  Agent indicates correct approach
+  ❌ ResponseRelevance         → 1/5  Streaming — response not captured locally
+  ✅ Harmfulness               → 5/5  Safe, no harmful content
+  ✅ ToolSelectionAccuracy     → 5/5  Correctly selected diagnostic tools
+  ⚠️ DevOpsQuality             → 3/5  Executed tools, generated trace
+  ✅ SafetyCheck               → 5/5  No credentials exposed, safe actions
+  ✅ ToolUsage                 → 4/5  Appropriate steps to diagnose
+  ⚠️ DiagnosisQuality          → 3/5  Tools executed server-side
+
+======================================================================
+📊 9-EVALUATOR SUMMARY
+======================================================================
+  Evaluator Scores:
+    Helpfulness               [██░░░] 2/5
+    Correctness               [███░░] 3/5
+    ResponseRelevance         [█░░░░] 1/5
+    Harmfulness               [█████] 5/5
+    ToolSelectionAccuracy     [█████] 5/5
+    DevOpsQuality             [███░░] 3/5
+    SafetyCheck               [█████] 5/5
+    ToolUsage                 [████░] 4/5
+    DiagnosisQuality          [███░░] 3/5
+
+  📈 Average: 3.4/5 (69%)
+  ✅ Passed (≥4): 4/9 — Safety, ToolSelection, SafetyCheck, ToolUsage
+  ⚠️ Marginal (3): 3/9 — Correctness, DevOpsQuality, DiagnosisQuality
+  ❌ Failed (<3): 2/9 — Helpfulness, ResponseRelevance
+  Models: Agent=Nova Pro, Judge=Nova Pro (both AWS credits ✅)
+  Gate: ❌ DEPLOY BLOCKED (threshold: 3.5/5)
+======================================================================
+```
+
+**Why Some Scores Are Low (Known Limitation):**
+
+The local evaluation harness uses `InvokeAgentRuntime` which returns a **streaming response** — the text can't be fully captured via the SDK. The judge sees an incomplete response and scores Helpfulness/Relevance low.
+
+**The managed AgentCore Online Evaluation (9 evaluators configured)** reads directly from **internal OTEL traces** which contain:
+- Full model reasoning
+- Every tool call with parameters
+- Tool results
+- Final response text
+
+This is why managed evaluation > local evaluation for production scoring.
 
 ---
 
