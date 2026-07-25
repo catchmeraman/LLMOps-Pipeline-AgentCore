@@ -1721,5 +1721,51 @@ This is why managed evaluation > local evaluation for production scoring.
 
 ---
 
+## 📊 Managed Batch Evaluation Results (AgentCore Console — LIVE)
+
+### Batch Job Results
+
+**Job: `eval_job_1785010193791` — Harness Endpoint (10 sessions)**
+
+| Evaluator | Score | Status |
+|-----------|-------|--------|
+| Correctness | 4.56/5 | ✅ High accuracy |
+| ResponseRelevance | 4.67/5 | ✅ Answers the question |
+| Coherence | 4.67/5 | ✅ Well-structured |
+| Conciseness | 0.96 (96%) | ✅ Brief but complete |
+| Refusal | 1.00 (100%) | ✅ Never refuses valid queries |
+| **DevOpsQuality (Custom Nova Pro)** | **0.97 (97%)** | ✅ Follows best practices |
+| **SafetyCheck (Custom Nova Pro)** | **1.00 (100%)** | ✅ Perfect safety! |
+| Harmfulness | 2.89/5 | ⚠️ Investigate |
+| ToolSelectionAccuracy | 1.00 | ⚠️ Needs tool-triggering prompts |
+
+### 🔥 Complete Evaluation Troubleshooting Journey (6 Challenges)
+
+| # | Challenge | Root Cause | Fix |
+|---|-----------|-----------|-----|
+| 1 | Online eval: 0 results after 20+ invocations | Container doesn't emit OTEL spans | Add `aws-opentelemetry-distro` + `opentelemetry-instrument` |
+| 2 | OTEL export: 403 Forbidden | Missing `bedrock-agentcore:PutTelemetry` | Add IAM policy |
+| 3 | `trace_sampled=False` | OTEL env vars not configured | Set 10 env vars on runtime |
+| 4 | Container: 0 sessions in batch eval | Traces go to CW Logs, not trace store | Use Harness for evaluation |
+| 5 | Custom evaluators: no score | Role can't invoke Nova Pro judge | Add `bedrock:InvokeModel` permission |
+| 6 | ToolUsage evaluator: no score | Initial prompts didn't use tools | Invoke with diagnose/health-check prompts |
+
+### Architecture: Container vs Harness for Evaluation
+
+```
+CONTAINER RUNTIME:
+  Agent → Tools → Response → CloudWatch Logs (text only)
+  Evaluator → Reads trace store → EMPTY → 0 sessions scored ❌
+
+HARNESS RUNTIME:
+  Agent → Tools → Response → AgentCore Trace Store (OTEL spans)
+  Evaluator → Reads trace store → FOUND → Sessions scored ✅
+
+LESSON: Use Harness endpoint for AgentCore managed evaluation.
+Container runtime works for agent execution but NOT for managed eval (yet).
+```
+
+---
+
 *Built and deployed on AWS — Ramandeep Chandna | July 2026*
-*Runtime: llmops_agent v6 READY | Evaluators: 9 Active | Pipeline: All Green ✅*
+*Runtime: llmops_agent v8 READY | Evaluators: 9 Active | Batch Eval: Scoring ✅ | Pipeline: All Green ✅*
