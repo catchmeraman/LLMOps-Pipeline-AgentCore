@@ -2,7 +2,9 @@
 import json
 import logging
 import traceback
+import uuid
 from http.server import HTTPServer, BaseHTTPRequestHandler
+from opentelemetry import baggage, context
 from agent import create_agent
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -19,19 +21,29 @@ class AgentHandler(BaseHTTPRequestHandler):
         try:
             request = json.loads(body)
             prompt = request.get("prompt", "")
-            session_id = request.get("session_id", "default")
+            session_id = request.get("session_id", str(uuid.uuid4()))
+
+            # Set session.id baggage for OTEL trace correlation
+            ctx = baggage.set_baggage("session.id", session_id)
+            token = context.attach(ctx)
 
             logger.info(f"[session={session_id}] Received: {prompt[:100]}...")
-            response = agent(prompt)
+
+            try:
+                response = agent(prompt)
+            finally:
+                context.detach(token)
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(json.dumps({
+
+            result = {
                 "response": str(response),
                 "session_id": session_id,
                 "status": "success"
-            }).encode())
+            }
+            self.wfile.write(json.dumps(result).encode())
             logger.info(f"[session={session_id}] Completed successfully")
 
         except Exception as e:
@@ -39,7 +51,8 @@ class AgentHandler(BaseHTTPRequestHandler):
             self.send_response(500)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(json.dumps({"error": str(e), "status": "error"}).encode())
+            error_result = {"error": str(e), "status": "error"}
+            self.wfile.write(json.dumps(error_result).encode())
 
     def do_GET(self):
         self.send_response(200)

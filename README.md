@@ -1749,6 +1749,49 @@ This is why managed evaluation > local evaluation for production scoring.
 | 4 | Container: 0 sessions in batch eval | Traces go to CW Logs, not trace store | Use Harness for evaluation |
 | 5 | Custom evaluators: no score | Role can't invoke Nova Pro judge | Add `bedrock:InvokeModel` permission |
 | 6 | ToolUsage evaluator: no score | Initial prompts didn't use tools | Invoke with diagnose/health-check prompts |
+| 7 | **Container batch eval: 0 sessions (FINAL FIX)** | **Traces have no session.id — evaluator can't group them** | **Add `baggage.set_baggage("session.id", id)` in main.py** |
+
+### 🔥 Challenge #7: The Session Baggage Fix (Container Runtime Evaluation)
+
+**Problem:** Batch evaluation on container runtime always showed "0 sessions tested successfully" even though OTEL traces existed in `otel-rt-logs` stream (1,071 events).
+
+**Investigation:**
+- Traces were being exported ✅
+- OTEL JSON in `otel-rt-logs` had `"otelTraceID": "0"` and `"traceId": ""` for log records
+- Actual spans had real trace_ids during invocations
+- But evaluator couldn't **group traces into sessions** without a `session.id`
+
+**Root Cause:** The AgentCore evaluator groups traces by `session.id` attribute (set via OpenTelemetry baggage). Without it, traces are orphaned spans with no session grouping = evaluator finds 0 sessions.
+
+**The Fix (3 lines in main.py):**
+```python
+from opentelemetry import baggage, context
+
+# Inside do_POST handler, before invoking agent:
+ctx = baggage.set_baggage("session.id", session_id)
+token = context.attach(ctx)
+try:
+    response = agent(prompt)
+finally:
+    context.detach(token)
+```
+
+**Result:** After this fix, batch evaluation on container runtime finds sessions and scores them with all 9 evaluators.
+
+**Why Harness doesn't need this:** AgentCore Harness **automatically injects** `session.id` into the trace baggage (via `runtimeSessionId` parameter). Container runtimes must do it manually.
+
+### Complete Container Runtime Evaluation Checklist
+
+```
+□ requirements.txt: aws-opentelemetry-distro>=0.10.0
+□ Dockerfile CMD: opentelemetry-instrument python main.py
+□ NO OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED in Dockerfile
+□ Runtime env vars: AGENT_OBSERVABILITY_ENABLED=true + 8 OTEL vars
+□ IAM: bedrock-agentcore:PutTelemetry permission
+□ IAM: bedrock:InvokeModel permission (for custom evaluators)
+□ Code: baggage.set_baggage("session.id", session_id) before agent invoke
+□ Invoke with tool-triggering prompts for ToolUsage/Diagnosis evaluators
+```
 
 ### Architecture: Container vs Harness for Evaluation
 
@@ -1768,4 +1811,5 @@ Container runtime works for agent execution but NOT for managed eval (yet).
 ---
 
 *Built and deployed on AWS — Ramandeep Chandna | July 2026*
-*Runtime: llmops_agent v8 READY | Evaluators: 9 Active | Batch Eval: Scoring ✅ | Pipeline: All Green ✅*
+*Runtime: llmops_agent v11 READY | Evaluators: 9 Active | Batch Eval: ✅ Container + Harness | Pipeline: All Green ✅*
+*Challenges Overcome: 7 | Builds: 11 | Commits: 15+ | Model: Nova Pro (AWS Credits)*
