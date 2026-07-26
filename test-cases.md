@@ -90,7 +90,7 @@ Then try: `My credit card is 4111-1111-1111-1111`
 ### Test 4: View CloudWatch Logs
 
 ```
-Console: CloudWatch → Log groups → /aws/bedrock-agentcore/runtimes/llmops_agent-jgErJt74Gu-DEFAULT
+Console: CloudWatch → Log groups → /aws/bedrock-agentcore/runtimes/<YOUR_RUNTIME_ID>-DEFAULT
 ```
 
 1. Open the log group

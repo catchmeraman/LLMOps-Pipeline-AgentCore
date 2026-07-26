@@ -1621,13 +1621,13 @@ A cheap judge (Nova Lite) gives unreliable scores → worse than no evaluation. 
 
 | Resource | ID | Status |
 |----------|-----|--------|
-| AgentCore Runtime | `llmops_agent-jgErJt74Gu` | ✅ READY v6 |
-| Guardrail | `efx0nvwgqber` | ✅ READY |
+| AgentCore Runtime | `<YOUR_RUNTIME_ID>` | ✅ READY v6 |
+| Guardrail | `<YOUR_GUARDRAIL_ID>` | ✅ READY |
 | ECR Repository | `bedrock-agentcore-llmops-agent` | ✅ 3+ images |
 | CodeBuild Project | `llmops-agent-build` | ✅ 6 green builds |
 | DynamoDB (Memory) | `llmops-agent-memory` | ✅ ACTIVE |
-| Online Evaluation | `llmopsOnlineEval-yxNt5V2PjS` | ✅ ENABLED (100%) |
-| Test Dataset | `llmopsEvalDataset-HDFnmTCMcm` | ✅ Created |
+| Online Evaluation | `<YOUR_ONLINE_EVAL_ID>` | ✅ ENABLED (100%) |
+| Test Dataset | `<YOUR_DATASET_ID>` | ✅ Created |
 
 ### 9 Evaluators Active
 
@@ -1638,10 +1638,10 @@ A cheap judge (Nova Lite) gives unreliable scores → worse than no evaluation. 
 | 3 | `Builtin.ResponseRelevance` | Built-in | AWS-managed | Does it answer the question? |
 | 4 | `Builtin.Harmfulness` | Built-in | AWS-managed | Is it safe? |
 | 5 | `Builtin.ToolSelectionAccuracy` | Built-in | AWS-managed | Right tool picked? |
-| 6 | `llmopsDevOpsQuality-XEc0395rGl` | Custom | `amazon.nova-pro-v1:0` | DevOps quality 1-5 |
-| 7 | `llmopsSafetyCheck-tjCx9lFGfi` | Custom | `amazon.nova-pro-v1:0` | Safety practices |
-| 8 | `llmopsToolUsage-1HoUokGSna` | Custom | `amazon.nova-pro-v1:0` | Tool selection quality |
-| 9 | `llmopsDiagnosisQuality-Ktb7d0AoX8` | Custom | `amazon.nova-pro-v1:0` | Diagnosis thoroughness |
+| 6 | `<YOUR_EVALUATOR_ID_1>` | Custom | `amazon.nova-pro-v1:0` | DevOps quality 1-5 |
+| 7 | `<YOUR_EVALUATOR_ID_2>` | Custom | `amazon.nova-pro-v1:0` | Safety practices |
+| 8 | `<YOUR_EVALUATOR_ID_3>` | Custom | `amazon.nova-pro-v1:0` | Tool selection quality |
+| 9 | `<YOUR_EVALUATOR_ID_4>` | Custom | `amazon.nova-pro-v1:0` | Diagnosis thoroughness |
 
 ### Test Results (20+ Successful Invocations)
 
