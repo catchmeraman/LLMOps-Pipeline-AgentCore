@@ -36,7 +36,7 @@
 ### CI/CD
 | # | Filename | What to Capture | Console Path |
 |---|----------|-----------------|-------------|
-| 13 | `13_codebuild_history.png` | 9+ successful builds (all green) | CodeBuild → llmops-agent-build → History |
+| 13 | `13_codebuild_history.png` | 9+ successful builds (all green) | CodeBuild → <YOUR_CODEBUILD_PROJECT> → History |
 | 14 | `14_codebuild_phases.png` | Build phases (Source→Build→Push) | Click a build → Phases |
 | 15 | `15_ecr_images.png` | Docker images in ECR | ECR → bedrock-agentcore-llmops-agent |
 
@@ -50,7 +50,7 @@
 ### Infrastructure
 | # | Filename | What to Capture | Console Path |
 |---|----------|-----------------|-------------|
-| 18 | `18_iam_role_permissions.png` | event-agent-role (15+ policies) | IAM → Roles → event-agent-role |
+| 18 | `18_iam_role_permissions.png` | <YOUR_IAM_ROLE> (15+ policies) | IAM → Roles → <YOUR_IAM_ROLE> |
 | 19 | `19_dynamodb_memory.png` | llmops-agent-memory table | DynamoDB → Tables |
 | 20 | `20_s3_artifacts.png` | S3 source.zip | S3 → event-agent-kb → llmops-pipeline/ |
 

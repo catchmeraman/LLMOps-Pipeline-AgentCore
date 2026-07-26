@@ -174,10 +174,10 @@ phases:
 | 3 | Version history (v1→v11) | Runtime → Versions |
 | 4 | Guardrail config | Bedrock → Guardrails |
 | 5 | Guardrail TEST — prompt injection BLOCKED | Guardrails → Test tab |
-| 6 | CodeBuild history (9+ green) | CodeBuild → llmops-agent-build |
+| 6 | CodeBuild history (9+ green) | CodeBuild → <YOUR_CODEBUILD_PROJECT> |
 | 7 | ECR images | ECR → bedrock-agentcore-llmops-agent |
 | 8 | CloudWatch runtime logs | CloudWatch → Log groups → llmops_agent |
-| 9 | IAM role permissions | IAM → event-agent-role |
+| 9 | IAM role permissions | IAM → <YOUR_IAM_ROLE> |
 
 ---
 

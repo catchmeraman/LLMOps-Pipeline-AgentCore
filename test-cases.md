@@ -102,7 +102,7 @@ Console: CloudWatch → Log groups → /aws/bedrock-agentcore/runtimes/<YOUR_RUN
 ### Test 5: View CodeBuild History
 
 ```
-Console: CodeBuild → Projects → llmops-agent-build → Build history
+Console: CodeBuild → Projects → <YOUR_CODEBUILD_PROJECT> → Build history
 ```
 
 1. See 5 successful builds (all green)
@@ -170,6 +170,6 @@ python harness.py --mode skills
 | 7 | CodeBuild history (5 green) | CodeBuild → Build history |
 | 8 | ECR images | ECR → Repository |
 | 9 | DynamoDB memory table | DynamoDB → Tables |
-| 10 | IAM role permissions | IAM → Roles → event-agent-role |
+| 10 | IAM role permissions | IAM → Roles → <YOUR_IAM_ROLE> |
 | 11 | Evaluation scores (terminal) | Local terminal output |
 | 12 | Guardrail configuration | Bedrock → Guardrails → Config |

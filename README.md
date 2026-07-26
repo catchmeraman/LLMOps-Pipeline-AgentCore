@@ -725,7 +725,7 @@ version: 0.2
 env:
   variables:
     ECR_REPO: "bedrock-agentcore-llmops-agent"
-    AGENT_RUNTIME_ID: "llmops_agent-xxxxxxxxxx"
+    AGENT_RUNTIME_ID: "<YOUR_RUNTIME_ID>"
     EXECUTION_ROLE: "arn:aws:iam::ACCOUNT:role/agentcore-execution-role"
     EVAL_THRESHOLD: "0.85"
 
@@ -962,7 +962,7 @@ Resources:
   AgentBuild:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: llmops-agent-build
+      Name: <YOUR_CODEBUILD_PROJECT>
       Description: Build + Evaluate + Deploy LLMOps Agent
       Source:
         Type: CODEPIPELINE
@@ -1624,7 +1624,7 @@ A cheap judge (Nova Lite) gives unreliable scores → worse than no evaluation. 
 | AgentCore Runtime | `<YOUR_RUNTIME_ID>` | ✅ READY v6 |
 | Guardrail | `<YOUR_GUARDRAIL_ID>` | ✅ READY |
 | ECR Repository | `bedrock-agentcore-llmops-agent` | ✅ 3+ images |
-| CodeBuild Project | `llmops-agent-build` | ✅ 6 green builds |
+| CodeBuild Project | `<YOUR_CODEBUILD_PROJECT>` | ✅ 6 green builds |
 | DynamoDB (Memory) | `llmops-agent-memory` | ✅ ACTIVE |
 | Online Evaluation | `<YOUR_ONLINE_EVAL_ID>` | ✅ ENABLED (100%) |
 | Test Dataset | `<YOUR_DATASET_ID>` | ✅ Created |
