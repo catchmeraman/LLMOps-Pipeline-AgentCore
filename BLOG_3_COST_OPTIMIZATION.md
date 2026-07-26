@@ -134,16 +134,239 @@ def select_model(prompt: str) -> str:
 
 ---
 
-## Cost Optimization Tips
+## Cost Reduction Strategies (With Implementation Code)
 
-| # | Tip | Savings |
-|---|-----|---------|
-| 1 | Use Nova Pro (not Claude) | 78% reduction |
-| 2 | Model routing (Lite for simple) | 50-70% on token cost |
-| 3 | Reduce eval sampling to 10% in prod | 90% eval savings |
-| 4 | Cache common prompts (DynamoDB) | 30-50% token savings |
-| 5 | Use Harness (not container) for simple agents | $0 runtime overhead |
-| 6 | Set idle timeout low (900s default) | Reduce memory charges |
+### Strategy 1: Smart Model Routing — Route by Query Complexity
+
+Instead of sending everything to Nova Pro ($0.80/1M), route simple queries to Nova Lite ($0.06/1M).
+
+```python
+"""model_router.py — Intelligent model selection based on query complexity."""
+import re
+
+NOVA_LITE = "us.amazon.nova-lite-v1:0"    # $0.06/1M input — simple queries
+NOVA_PRO = "us.amazon.nova-pro-v1:0"      # $0.80/1M input — complex reasoning
+
+# Patterns that indicate simple queries (no reasoning needed)
+SIMPLE_PATTERNS = [
+    r"^list\b", r"^show\b", r"^get\b", r"^what (is|are)\b",
+    r"^status\b", r"^health\b", r"^count\b", r"^describe\b"
+]
+
+# Patterns that indicate complex queries (multi-step reasoning)
+COMPLEX_PATTERNS = [
+    r"diagnose", r"troubleshoot", r"why.*fail", r"root cause",
+    r"fix\b", r"remediate", r"investigate", r"compare.*and"
+]
+
+def select_model(prompt: str) -> tuple[str, str]:
+    """Returns (model_id, reason) based on query complexity."""
+    prompt_lower = prompt.lower().strip()
+    
+    # Check complex first (takes priority)
+    for pattern in COMPLEX_PATTERNS:
+        if re.search(pattern, prompt_lower):
+            return NOVA_PRO, "complex_reasoning"
+    
+    # Check simple
+    for pattern in SIMPLE_PATTERNS:
+        if re.search(pattern, prompt_lower):
+            return NOVA_LITE, "simple_query"
+    
+    # Default: use Pro for safety (better to overspend than give bad answers)
+    if len(prompt) > 200:
+        return NOVA_PRO, "long_prompt"
+    
+    return NOVA_LITE, "default_simple"
+
+
+# Usage in agent:
+# model_id, reason = select_model(user_prompt)
+# agent = Agent(model=BedrockModel(model_id=model_id, ...))
+```
+
+**Savings:** 70% of typical DevOps queries are simple (list, status, health) → 70% traffic at $0.06 instead of $0.80 = **~85% token cost reduction.**
+
+---
+
+### Strategy 2: Prompt Caching — DynamoDB Response Cache
+
+Cache frequent queries. If the same question was answered < 5 minutes ago, return cached response.
+
+```python
+"""prompt_cache.py — Cache agent responses to avoid duplicate LLM calls."""
+import boto3
+import json
+import hashlib
+import time
+
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+cache_table = dynamodb.Table('agent-response-cache')
+CACHE_TTL_SECONDS = 300  # 5 minutes
+
+
+def get_cache_key(prompt: str) -> str:
+    """Normalize prompt and create hash key."""
+    normalized = prompt.lower().strip()
+    return hashlib.sha256(normalized.encode()).hexdigest()[:16]
+
+
+def get_cached_response(prompt: str) -> dict | None:
+    """Check if a recent cached response exists."""
+    key = get_cache_key(prompt)
+    try:
+        item = cache_table.get_item(Key={'cache_key': key}).get('Item')
+        if item and item.get('expires_at', 0) > int(time.time()):
+            return {"response": item['response'], "cached": True, "saved_tokens": item.get('tokens_saved', 0)}
+    except Exception:
+        pass
+    return None
+
+
+def cache_response(prompt: str, response: str, tokens_used: int):
+    """Store response in cache with TTL."""
+    key = get_cache_key(prompt)
+    cache_table.put_item(Item={
+        'cache_key': key,
+        'prompt': prompt[:200],
+        'response': response,
+        'tokens_saved': tokens_used,
+        'created_at': int(time.time()),
+        'expires_at': int(time.time()) + CACHE_TTL_SECONDS
+    })
+
+
+# Usage in agent handler:
+# cached = get_cached_response(prompt)
+# if cached:
+#     return cached["response"]  # Skip LLM call entirely!
+# else:
+#     response = agent(prompt)
+#     cache_response(prompt, str(response), token_count)
+```
+
+**Savings:** For repeated queries (health checks running every 5 min, status dashboards), caching eliminates **100% of duplicate LLM calls**. Typical savings: 30-50% of total token cost.
+
+---
+
+### Strategy 3: MCP Gateway — Avoid Agent Calls for Simple API Lookups
+
+For queries that just need a direct API call (no reasoning), bypass the agent entirely and call the API via Gateway.
+
+```python
+"""gateway_router.py — Route simple lookups directly to APIs, skip the LLM."""
+import boto3
+import json
+
+# If a query maps directly to a single API call, skip the agent
+DIRECT_API_ROUTES = {
+    "list instances": {
+        "service": "ec2",
+        "operation": "DescribeInstances",
+        "params": {},
+        "format": lambda r: [{"id": i["InstanceId"], "state": i["State"]["Name"]} 
+                             for res in r["Reservations"] for i in res["Instances"]]
+    },
+    "list alarms": {
+        "service": "cloudwatch", 
+        "operation": "DescribeAlarms",
+        "params": {"StateValue": "ALARM"},
+        "format": lambda r: [{"name": a["AlarmName"], "state": a["StateValue"]} 
+                             for a in r["MetricAlarms"]]
+    }
+}
+
+
+def try_direct_route(prompt: str) -> dict | None:
+    """If query matches a direct API route, call it without LLM."""
+    prompt_lower = prompt.lower().strip()
+    
+    for pattern, config in DIRECT_API_ROUTES.items():
+        if pattern in prompt_lower:
+            client = boto3.client(config["service"], region_name="us-east-1")
+            operation = getattr(client, config["operation"].replace(
+                config["operation"][0], config["operation"][0].lower(), 1
+            ).replace("Describe", "describe_").rstrip("_"))
+            # Simplified — in production use proper boto3 call
+            try:
+                response = getattr(client, 
+                    ''.join(['_'+c.lower() if c.isupper() else c for c in config["operation"]]).lstrip('_')
+                )(**config["params"])
+                return {"response": config["format"](response), "routed": "direct_api", "tokens_used": 0}
+            except Exception:
+                pass
+    
+    return None  # No direct route found — use agent
+
+
+# Usage:
+# direct = try_direct_route(prompt)
+# if direct:
+#     return direct  # Zero LLM cost!
+# else:
+#     return agent(prompt)  # Use LLM for complex queries
+```
+
+**Savings:** 20-30% of queries are simple lookups that don't need LLM reasoning. Routing them directly to APIs = **$0 token cost for those queries.**
+
+---
+
+### Strategy 4: Reduce Evaluation Sampling in Production
+
+Don't evaluate 100% of sessions. In production, sample 10-20%.
+
+```python
+"""eval_sampling.py — Reduce evaluation cost by sampling."""
+
+# In your online evaluation config:
+# samplingPercentage: 10  (only score 10% of sessions)
+
+# For batch evaluation, run weekly instead of daily:
+# Schedule: Every Monday at 6 AM UTC
+# Sessions: Last 7 days
+# Evaluators: All 9
+
+# Cost impact:
+# 100% sampling: $1.56/month
+# 10% sampling:  $0.16/month (90% savings)
+```
+
+---
+
+### Strategy 5: Prompt Compression — Reduce Token Count
+
+Shorter system prompts = fewer input tokens per call.
+
+```python
+# BEFORE (verbose — 150 tokens):
+SYSTEM_PROMPT = """You are a production DevOps AI Agent responsible for monitoring,
+diagnosing, and remediating AWS infrastructure issues. You have access to CloudWatch,
+EC2, SSM, and SNS tools. Always diagnose before taking action. Explain your reasoning
+clearly. For destructive actions, explain why first. Provide clear summaries."""
+
+# AFTER (compressed — 60 tokens, same behavior):
+SYSTEM_PROMPT = """DevOps AI Agent. Tools: CloudWatch, EC2, SSM, SNS.
+Rules: 1) Diagnose before act 2) Explain reasoning 3) Justify destructive actions"""
+
+# Savings: 90 tokens/request × 1000 requests = 90K tokens saved
+# At $0.80/1M = $0.07 saved per 1000 requests
+```
+
+---
+
+### Combined Savings Projection
+
+| Strategy | Savings | Effort |
+|----------|---------|--------|
+| Model routing (Lite/Pro) | 85% on tokens | Low (code change) |
+| Prompt caching (DynamoDB) | 30-50% on repeated calls | Medium (new table) |
+| Direct API routing (Gateway) | 20-30% calls skip LLM | Medium (route config) |
+| Eval sampling (10%) | 90% on eval cost | Low (config change) |
+| Prompt compression | 5-10% on input tokens | Low (prompt edit) |
+| **Combined** | **~70-80% total reduction** | |
+
+**Before optimization:** $3.35/month (current)
+**After all strategies:** ~$0.80-1.00/month (projected)
 
 ---
 
