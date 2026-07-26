@@ -1,9 +1,54 @@
 # 🏗️ Building a Production AI Agent on Amazon Bedrock AgentCore — From Code to Deployment
 
-> How I deployed a DevOps AI agent with tools, guardrails, and CI/CD — hitting (and fixing) every error along the way.
+> Part 1 of 3: How I deployed a DevOps AI agent with tools, guardrails, and CI/CD — hitting (and fixing) every error along the way.
 
 **Author:** Ramandeep Chandna | **Date:** July 2026 | **Level:** 300+
 **GitHub:** https://github.com/catchmeraman/LLMOps-Pipeline-AgentCore
+**Series:** LLMOps Pipeline on AWS — Building, Evaluating, and Optimizing AI Agents
+
+---
+
+## 📖 Series Navigation
+
+| Part | Blog | Status |
+|------|------|--------|
+| **Prequel** | [How I Built an IT Operations Agent on AgentCore](https://github.com/catchmeraman/it-ops-agent-complete) | ✅ Deployed |
+| **→ Part 1** | **This blog** — Building a Production Agent with LLMOps practices | You are here |
+| Part 2 | [Getting Managed Evaluation Working on Container Runtimes](./BLOG_2_EVALUATION.md) | Next |
+| Part 3 | [Running a Production AI Agent for $3.35/Month](./BLOG_3_COST_OPTIMIZATION.md) | Final |
+
+---
+
+## 🔗 Where We Left Off (From the IT Ops Agent Blog)
+
+In my [previous blog](https://github.com/catchmeraman/it-ops-agent-complete), I built and deployed an IT Operations Agent on AgentCore Runtime with:
+- ✅ 12 tools (CloudWatch, EC2, SSM, SNS, CloudTrail, Knowledge Base)
+- ✅ CI/CD pipeline (CodeCommit → CodeBuild → ECR → AgentCore)
+- ✅ Production deployment (Runtime v8, all tests passing)
+
+**What was MISSING from that deployment:**
+- ❌ No evaluation — how do we know the agent's answers are good?
+- ❌ No guardrails — what stops prompt injection or PII leaks?
+- ❌ No observability traces — can't see what the agent did step-by-step
+- ❌ No cost optimization — using Claude Sonnet ($3/1M tokens) without considering alternatives
+- ❌ No memory — agent forgets everything between sessions
+
+**This blog series adds all of that.** We take the same agent pattern and build a complete LLMOps pipeline around it.
+
+---
+
+## How This Blog Differs from the IT Ops Agent Blog
+
+| Aspect | IT Ops Agent Blog | This Blog (LLMOps Pipeline) |
+|--------|-------------------|----------------------------|
+| **Focus** | Build & deploy an agent | Operate, evaluate, and optimize an agent |
+| **Model** | Claude Sonnet 4 | Amazon Nova Pro (78% cheaper) |
+| **Evaluation** | None | 9 evaluators (LLM-as-Judge) |
+| **Guardrails** | None | Content + PII + Prompt Injection |
+| **Observability** | Basic CloudWatch logs | OpenTelemetry traces with session.id |
+| **Memory** | None | DynamoDB cross-session persistence |
+| **Cost** | ~$15/month | $3.35/month (optimized) |
+| **CI/CD** | Deploy only | Deploy + Evaluate + Quality Gate |
 
 ---
 
@@ -146,6 +191,34 @@ phases:
 
 ---
 
-*Next in series: [Part 2: Getting Managed Evaluation Working on Container Runtimes](./BLOG_2_EVALUATION.md)*
+## 📁 Code Reference (All in GitHub Repo)
+
+| File | What It Does |
+|------|-------------|
+| [`agent/main.py`](./agent/main.py) | HTTP server with OTEL session baggage |
+| [`agent/agent.py`](./agent/agent.py) | Strands Agent + Nova Pro + 6 tools |
+| [`agent/tools/`](./agent/tools/) | CloudWatch, EC2, SSM, SNS tool implementations |
+| [`agent/skills.py`](./agent/skills.py) | Tool schemas, risk levels, Cedar policies |
+| [`agent/memory.py`](./agent/memory.py) | DynamoDB cross-session persistence |
+| [`agent/observability.py`](./agent/observability.py) | CloudWatch custom metrics + dashboard |
+| [`Dockerfile`](./Dockerfile) | ARM64 container with OTEL auto-instrumentation |
+| [`buildspec.yml`](./buildspec.yml) | CodeBuild CI/CD instructions |
+| [`requirements.txt`](./requirements.txt) | Dependencies (strands + ADOT SDK) |
+
+---
+
+## What's Next: The Agent Works — But Is It Any Good?
+
+We have a deployed, working agent. But how do we know:
+- Are the answers correct?
+- Is it safe?
+- Does it pick the right tools?
+- Is it getting better or worse over time?
+
+**→ [Part 2: Getting Managed Evaluation Working on Container Runtimes](./BLOG_2_EVALUATION.md)**
+
+In Part 2, I configure 9 evaluators (5 built-in + 4 custom with Nova Pro as judge) and discover that getting evaluation to work on container runtimes requires solving 7 challenges — including one undocumented fix (`session.id` baggage) that took an entire night to find.
+
+---
 
 **GitHub:** https://github.com/catchmeraman/LLMOps-Pipeline-AgentCore

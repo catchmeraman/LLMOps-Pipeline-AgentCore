@@ -1,9 +1,32 @@
 # 💰 Cost-Optimized LLMOps: Running a Production AI Agent for $3.35/Month
 
-> How to build a production LLMOps pipeline on AWS for less than a cup of coffee.
+> Part 3 of 3: How to build a production LLMOps pipeline on AWS for less than a cup of coffee.
 
 **Author:** Ramandeep Chandna | **Date:** July 2026 | **Level:** 300+
 **GitHub:** https://github.com/catchmeraman/LLMOps-Pipeline-AgentCore
+**Series:** LLMOps Pipeline on AWS — Building, Evaluating, and Optimizing AI Agents
+
+---
+
+## 📖 Series Navigation
+
+| Part | Blog | Status |
+|------|------|--------|
+| Prequel | [IT Operations Agent on AgentCore](https://github.com/catchmeraman/it-ops-agent-complete) | Foundation |
+| Part 1 | [Building a Production Agent](./BLOG_1_AGENT_DEPLOYMENT.md) | Agent deployed ✅ |
+| Part 2 | [Getting Evaluation Working](./BLOG_2_EVALUATION.md) | 9 evaluators active ✅ |
+| **→ Part 3** | **This blog** — Cost Analysis & Optimization | You are here |
+
+---
+
+## 🔗 Where We Left Off (From Part 2)
+
+In [Part 2](./BLOG_2_EVALUATION.md), we got 9 evaluators running on both Harness and Container runtimes:
+- ✅ 5 built-in evaluators (Helpfulness, Correctness, Relevance, Harmfulness, ToolSelection)
+- ✅ 4 custom evaluators (DevOpsQuality, SafetyCheck, ToolUsage, DiagnosisQuality)
+- ✅ Batch evaluation scoring sessions on both runtime types
+
+**The question now:** What does all this actually cost? And how do we optimize it for production scale?
 
 ---
 
@@ -180,6 +203,42 @@ You'll see:
 
 ---
 
+## 📁 Code Reference (All in GitHub Repo)
+
+| File | Relevant Section |
+|------|-----------------|
+| [`agent/agent.py`](./agent/agent.py) | Model selection: `us.amazon.nova-pro-v1:0` |
+| [`evaluation/config.py`](./evaluation/config.py) | Judge model: `us.amazon.nova-pro-v1:0` |
+| [`agent/skills.py`](./agent/skills.py) | Tool schemas with risk levels |
+| [`Dockerfile`](./Dockerfile) | Minimal image for low runtime cost |
+| [`agent/observability.py`](./agent/observability.py) | CloudWatch custom metrics (cost per request) |
+
+---
+
+## 🏁 Series Conclusion
+
+Across 3 blog posts + 1 prequel, we went from zero to a complete production LLMOps pipeline:
+
+| Blog | What We Achieved |
+|------|-----------------|
+| **Prequel** (IT Ops Agent) | Built a working agent with 12 tools |
+| **Part 1** (This series) | Added guardrails, CI/CD, Nova Pro, OTEL tracing |
+| **Part 2** | Got managed evaluation working (7 challenges solved) |
+| **Part 3** | Proved it costs $3.35/month — production viable |
+
+**The complete stack:**
+- 🤖 Agent: Nova Pro + 6 tools + Strands framework
+- 🛡️ Security: Guardrails (content + PII + injection) + Cedar policies
+- 🚀 Deployment: CodeBuild ARM64 → ECR → AgentCore auto-deploy
+- 🧪 Evaluation: 9 evaluators (LLM-as-Judge) on every session
+- 📊 Observability: OpenTelemetry traces with session.id
+- 💾 Memory: DynamoDB cross-session persistence
+- 💰 Cost: $3.35/month all-in
+
+**GitHub (all code, diagrams, docs):** https://github.com/catchmeraman/LLMOps-Pipeline-AgentCore
+
+---
+
 *Previous: [Part 2: Evaluation on Container Runtimes](./BLOG_2_EVALUATION.md)*
 
-**Full source code:** https://github.com/catchmeraman/LLMOps-Pipeline-AgentCore
+**Full series start:** [Part 1: Building a Production Agent](./BLOG_1_AGENT_DEPLOYMENT.md)

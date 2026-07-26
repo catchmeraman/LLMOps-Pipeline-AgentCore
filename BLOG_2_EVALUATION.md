@@ -1,9 +1,33 @@
 # 🧪 LLMOps Evaluation: How I Got AgentCore Managed Evaluation Working on Container Runtimes
 
-> 7 challenges, 7 fixes, and the one line of code that made it all work.
+> Part 2 of 3: 7 challenges, 7 fixes, and the one line of code that made it all work.
 
 **Author:** Ramandeep Chandna | **Date:** July 2026 | **Level:** 300+
 **GitHub:** https://github.com/catchmeraman/LLMOps-Pipeline-AgentCore
+**Series:** LLMOps Pipeline on AWS — Building, Evaluating, and Optimizing AI Agents
+
+---
+
+## 📖 Series Navigation
+
+| Part | Blog | Status |
+|------|------|--------|
+| Prequel | [IT Operations Agent on AgentCore](https://github.com/catchmeraman/it-ops-agent-complete) | Foundation |
+| Part 1 | [Building a Production Agent](./BLOG_1_AGENT_DEPLOYMENT.md) | Agent deployed ✅ |
+| **→ Part 2** | **This blog** — Getting Evaluation Working | You are here |
+| Part 3 | [Cost-Optimized LLMOps for $3.35/Month](./BLOG_3_COST_OPTIMIZATION.md) | Next |
+
+---
+
+## 🔗 Where We Left Off (From Part 1)
+
+In [Part 1](./BLOG_1_AGENT_DEPLOYMENT.md), we deployed a production agent with:
+- ✅ Strands Agent + Nova Pro on AgentCore Runtime v11
+- ✅ 6 tools (CloudWatch, EC2, SSM, SNS)
+- ✅ Guardrails (content + PII + prompt injection)
+- ✅ CI/CD (CodeBuild ARM64 → ECR → auto-deploy)
+
+**The question now:** How do we know the agent is actually doing a good job? We need automated quality measurement — evaluation.
 
 ---
 
@@ -220,6 +244,30 @@ finally:
 
 ---
 
-*Previous: [Part 1: Building a Production Agent](./BLOG_1_AGENT_DEPLOYMENT.md) | Next: [Part 3: Cost-Optimized LLMOps](./BLOG_3_COST_OPTIMIZATION.md)*
+## 📁 Code Reference (All in GitHub Repo)
+
+| File | What It Does |
+|------|-------------|
+| [`agent/main.py`](./agent/main.py) | **Lines 3-5, 29-35:** session.id baggage (THE FIX) |
+| [`evaluation/config.py`](./evaluation/config.py) | Evaluator config, rubrics, test cases, thresholds |
+| [`evaluation/evaluator.py`](./evaluation/evaluator.py) | LLM-as-Judge engine (local evaluation) |
+| [`harness.py`](./harness.py) | CLI: invoke, evaluate, smoke, interactive modes |
+| [`Dockerfile`](./Dockerfile) | `opentelemetry-instrument` CMD (auto-tracing) |
+| [`requirements.txt`](./requirements.txt) | `aws-opentelemetry-distro>=0.10.0` |
+| [`test-cases.md`](./test-cases.md) | 17 test cases + console testing guide |
+
+---
+
+## What's Next: It Works — But What Does It Cost?
+
+Evaluation is running. 9 evaluators scoring every session. Custom evaluators using Nova Pro as judge. But what's the actual cost? Is it sustainable at scale?
+
+**→ [Part 3: Running a Production AI Agent for $3.35/Month](./BLOG_3_COST_OPTIMIZATION.md)**
+
+In Part 3, I break down the actual AWS bill line-by-line — discovering that built-in evaluators aren't free (they charge Tier2 tokens), and showing how the complete pipeline runs for less than a coffee.
+
+---
+
+*Previous: [Part 1: Building a Production Agent](./BLOG_1_AGENT_DEPLOYMENT.md)*
 
 **GitHub:** https://github.com/catchmeraman/LLMOps-Pipeline-AgentCore
