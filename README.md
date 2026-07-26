@@ -1793,19 +1793,19 @@ finally:
 □ Invoke with tool-triggering prompts for ToolUsage/Diagnosis evaluators
 ```
 
-### Architecture: Container vs Harness for Evaluation
+### Architecture: Container vs Harness for Evaluation (BOTH WORK ✅)
 
 ```
-CONTAINER RUNTIME:
-  Agent → Tools → Response → CloudWatch Logs (text only)
-  Evaluator → Reads trace store → EMPTY → 0 sessions scored ❌
+CONTAINER RUNTIME (after session.id baggage fix):
+  Agent → Tools → Response → OTEL traces with session.id baggage
+  Evaluator → Reads otel-rt-logs → FINDS sessions → Scored ✅
 
-HARNESS RUNTIME:
-  Agent → Tools → Response → AgentCore Trace Store (OTEL spans)
-  Evaluator → Reads trace store → FOUND → Sessions scored ✅
+HARNESS RUNTIME (automatic):
+  Agent → Tools → Response → AgentCore Trace Store (auto session.id)
+  Evaluator → Reads trace store → FINDS sessions → Scored ✅
 
-LESSON: Use Harness endpoint for AgentCore managed evaluation.
-Container runtime works for agent execution but NOT for managed eval (yet).
+BOTH WORK after applying the 7-step fix checklist.
+Key difference: Harness auto-injects session.id. Container needs manual baggage.set_baggage().
 ```
 
 ---
