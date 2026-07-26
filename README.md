@@ -1795,6 +1795,27 @@ finally:
 □ Invoke with tool-triggering prompts for ToolUsage/Diagnosis evaluators
 ```
 
+### 7 Challenges Overcome — From Zero to Working Evaluation
+![7 Challenges & Solutions](generated-diagrams/10_challenges_solutions.png)
+
+### Harness vs Container Runtime — Evaluation Flow Comparison
+![Harness vs Container](generated-diagrams/11_harness_vs_container_eval.png)
+
+### When to Use Which:
+
+| Use Case | Harness | Container Runtime |
+|----------|---------|-------------------|
+| **Quick prototyping** | ✅ Best | ❌ Overkill |
+| **Standard agent patterns** | ✅ Best | ❌ Unnecessary complexity |
+| **Custom orchestration logic** | ❌ Limited | ✅ Best |
+| **Existing framework (Strands/LangChain)** | ⚠️ Possible | ✅ Best |
+| **Evaluation setup effort** | ✅ Zero config | ⚠️ 7-step checklist |
+| **Code interpreter + browser** | ✅ Built-in | ❌ Not available |
+| **Full dependency control** | ❌ Limited | ✅ Full Dockerfile |
+| **Multi-model switching** | ✅ Config change | ⚠️ Code change + redeploy |
+| **Production scale** | ✅ Auto-managed | ✅ Auto-managed |
+| **Evaluation works?** | ✅ Immediately | ✅ After 7-step setup |
+
 ### Architecture: Container vs Harness for Evaluation (BOTH WORK ✅)
 
 ```
