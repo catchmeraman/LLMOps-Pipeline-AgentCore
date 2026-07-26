@@ -1428,24 +1428,26 @@ CAPTURE TRACES → EVALUATE (LLM-as-Judge) → RECOMMEND → A/B TEST → SHIP W
 ### Runtime & Deployment
 ![Runtime Dashboard - v11 READY](screenshots/01_runtime_dashboard.png)
 ![Runtime Configuration](screenshots/02_runtime_config.png)
-![Version History v1→v6](screenshots/03_runtime_versions.png)
+![Version History v1→v11](screenshots/03_runtime_versions.png)
 
 ### Security & Guardrails
 ![Guardrail Configuration](screenshots/05_guardrail_config.png)
 ![Prompt Injection BLOCKED](screenshots/08_guardrail_test_blocked.png)
 
-### Evaluation (LLM-as-Judge with Nova Pro)
+### Evaluation (LLM-as-Judge with Nova Pro) — WORKING ON BOTH RUNTIMES
 ![Evaluators List (9 active)](screenshots/09_evaluators_list.png)
 ![Custom Evaluator - Nova Pro Model Config](screenshots/10_custom_evaluator_config.png)
 ![Online Evaluation Config](screenshots/11_online_eval_config.png)
-![Evaluation Scores](screenshots/12_evaluation_results.png)
+![Batch Evaluation Scores - Container Runtime](screenshots/12_evaluation_results.png)
+![Batch Evaluation Scores - Harness Runtime](screenshots/12b_harness_eval_results.png)
 
 ### CI/CD Pipeline
-![CodeBuild History - 6 Green Builds](screenshots/13_codebuild_history.png)
+![CodeBuild History - 9+ Green Builds](screenshots/13_codebuild_history.png)
 ![ECR Docker Images](screenshots/15_ecr_images.png)
 
-### Observability
+### Observability & Traces
 ![CloudWatch Invocation Logs](screenshots/16_cloudwatch_logs.png)
+![OTEL Traces in otel-rt-logs stream](screenshots/16b_otel_traces.png)
 
 ### Infrastructure
 ![IAM Role Permissions](screenshots/18_iam_role_permissions.png)
