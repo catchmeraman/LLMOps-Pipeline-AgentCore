@@ -12,7 +12,7 @@
 
 | Part | Blog | Status |
 |------|------|--------|
-| Prequel | [IT Operations Agent on AgentCore](https://github.com/catchmeraman/it-ops-agent-complete) | Foundation |
+| Prequel | [How I Built a Production LLMOps Pipeline on AWS AgentCore End to End](https://github.com/catchmeraman/it-ops-agent-complete) | Foundation |
 | Part 1 | [Building a Production Agent](./BLOG_1_AGENT_DEPLOYMENT.md) | Agent deployed ✅ |
 | **→ Part 2** | **This blog** — Getting Evaluation Working | You are here |
 | Part 3 | [Cost-Optimized LLMOps for $3.35/Month](./BLOG_3_COST_OPTIMIZATION.md) | Next |

@@ -12,16 +12,16 @@
 
 | Part | Blog | Status |
 |------|------|--------|
-| **Prequel** | [How I Built an IT Operations Agent on AgentCore](https://github.com/catchmeraman/it-ops-agent-complete) | ✅ Deployed |
+| **Prequel** | [How I Built a Production LLMOps Pipeline on AWS AgentCore End to End](https://github.com/catchmeraman/it-ops-agent-complete) | ✅ Deployed |
 | **→ Part 1** | **This blog** — Building a Production Agent with LLMOps practices | You are here |
 | Part 2 | [Getting Managed Evaluation Working on Container Runtimes](./BLOG_2_EVALUATION.md) | Next |
 | Part 3 | [Running a Production AI Agent for $3.35/Month](./BLOG_3_COST_OPTIMIZATION.md) | Final |
 
 ---
 
-## 🔗 Where We Left Off (From the IT Ops Agent Blog)
+## 🔗 Where We Left Off (From the Previous Blog)
 
-In my [previous blog](https://github.com/catchmeraman/it-ops-agent-complete), I built and deployed an IT Operations Agent on AgentCore Runtime with:
+In my [previous blog](https://github.com/catchmeraman/it-ops-agent-complete), "How I Built a Production LLMOps Pipeline on AWS AgentCore End to End", I built and deployed an IT Operations Agent on AgentCore Runtime with:
 - ✅ 12 tools (CloudWatch, EC2, SSM, SNS, CloudTrail, Knowledge Base)
 - ✅ CI/CD pipeline (CodeCommit → CodeBuild → ECR → AgentCore)
 - ✅ Production deployment (Runtime v8, all tests passing)
@@ -37,9 +37,9 @@ In my [previous blog](https://github.com/catchmeraman/it-ops-agent-complete), I 
 
 ---
 
-## How This Blog Differs from the IT Ops Agent Blog
+## How This Blog Series Differs from the Previous Blog
 
-| Aspect | IT Ops Agent Blog | This Blog (LLMOps Pipeline) |
+| Aspect | Previous Blog (E2E Pipeline) | This Series (LLMOps Ops) |
 |--------|-------------------|----------------------------|
 | **Focus** | Build & deploy an agent | Operate, evaluate, and optimize an agent |
 | **Model** | Claude Sonnet 4 | Amazon Nova Pro (78% cheaper) |

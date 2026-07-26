@@ -12,7 +12,7 @@
 
 | Part | Blog | Status |
 |------|------|--------|
-| Prequel | [IT Operations Agent on AgentCore](https://github.com/catchmeraman/it-ops-agent-complete) | Foundation |
+| Prequel | [How I Built a Production LLMOps Pipeline on AWS AgentCore End to End](https://github.com/catchmeraman/it-ops-agent-complete) | Foundation |
 | Part 1 | [Building a Production Agent](./BLOG_1_AGENT_DEPLOYMENT.md) | Agent deployed ✅ |
 | Part 2 | [Getting Evaluation Working](./BLOG_2_EVALUATION.md) | 9 evaluators active ✅ |
 | **→ Part 3** | **This blog** — Cost Analysis & Optimization | You are here |
@@ -221,7 +221,7 @@ Across 3 blog posts + 1 prequel, we went from zero to a complete production LLMO
 
 | Blog | What We Achieved |
 |------|-----------------|
-| **Prequel** (IT Ops Agent) | Built a working agent with 12 tools |
+| **Prequel** (Previous Blog) | Built a working agent with 12 tools |
 | **Part 1** (This series) | Added guardrails, CI/CD, Nova Pro, OTEL tracing |
 | **Part 2** | Got managed evaluation working (7 challenges solved) |
 | **Part 3** | Proved it costs $3.35/month — production viable |
