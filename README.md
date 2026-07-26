@@ -1426,7 +1426,7 @@ CAPTURE TRACES → EVALUATE (LLM-as-Judge) → RECOMMEND → A/B TEST → SHIP W
 > Add your screenshots to the `screenshots/` folder. See `screenshots/README.md` for capture instructions.
 
 ### Runtime & Deployment
-![Runtime Dashboard - v6 READY](screenshots/01_runtime_dashboard.png)
+![Runtime Dashboard - v11 READY](screenshots/01_runtime_dashboard.png)
 ![Runtime Configuration](screenshots/02_runtime_config.png)
 ![Version History v1→v6](screenshots/03_runtime_versions.png)
 
@@ -1746,7 +1746,7 @@ This is why managed evaluation > local evaluation for production scoring.
 | 1 | Online eval: 0 results after 20+ invocations | Container doesn't emit OTEL spans | Add `aws-opentelemetry-distro` + `opentelemetry-instrument` |
 | 2 | OTEL export: 403 Forbidden | Missing `bedrock-agentcore:PutTelemetry` | Add IAM policy |
 | 3 | `trace_sampled=False` | OTEL env vars not configured | Set 10 env vars on runtime |
-| 4 | Container: 0 sessions in batch eval | Traces go to CW Logs, not trace store | Use Harness for evaluation |
+| 4 | Container: 0 sessions in batch eval | Missing session.id baggage in traces | Add `baggage.set_baggage("session.id", id)` — see Challenge #7 |
 | 5 | Custom evaluators: no score | Role can't invoke Nova Pro judge | Add `bedrock:InvokeModel` permission |
 | 6 | ToolUsage evaluator: no score | Initial prompts didn't use tools | Invoke with diagnose/health-check prompts |
 | 7 | **Container batch eval: 0 sessions (FINAL FIX)** | **Traces have no session.id — evaluator can't group them** | **Add `baggage.set_baggage("session.id", id)` in main.py** |

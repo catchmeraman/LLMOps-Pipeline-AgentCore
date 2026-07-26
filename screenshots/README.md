@@ -16,9 +16,9 @@
 ### AgentCore Runtime
 | # | Filename | What to Capture | Console Path |
 |---|----------|-----------------|-------------|
-| 1 | `01_runtime_dashboard.png` | Runtime list showing llmops_agent READY v6 | Bedrock → AgentCore → Runtimes |
+| 1 | `01_runtime_dashboard.png` | Runtime list showing llmops_agent READY v11 | Bedrock → AgentCore → Runtimes |
 | 2 | `02_runtime_config.png` | Runtime configuration (container URI, role, network) | Click llmops_agent → Configuration |
-| 3 | `03_runtime_versions.png` | Version history v1→v6 | Click llmops_agent → Versions |
+| 3 | `03_runtime_versions.png` | Version history v1→v11 | Click llmops_agent → Versions |
 | 4 | `04_runtime_endpoints.png` | DEFAULT endpoint details | Click llmops_agent → Endpoints |
 
 ### Guardrails
