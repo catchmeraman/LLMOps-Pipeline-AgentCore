@@ -4,7 +4,7 @@ env:
   variables:
     ECR_REPO: "bedrock-agentcore-llmops-agent"
     AWS_DEFAULT_REGION: "us-east-1"
-    RUNTIME_ID: "<YOUR_RUNTIME_ID>"
+    RUNTIME_ID: "llmops_agent-jgErJt74Gu"
 
 phases:
   pre_build:
