@@ -4,7 +4,7 @@ env:
   variables:
     ECR_REPO: "bedrock-agentcore-llmops-agent"
     AWS_DEFAULT_REGION: "us-east-1"
-    RUNTIME_ID: "llmops_agent-jgErJt74Gu"
+    RUNTIME_ID: "<YOUR_RUNTIME_ID>"
 
 phases:
   pre_build:
@@ -27,7 +27,10 @@ phases:
   post_build:
     commands:
       - echo "=== Deploying to AgentCore Runtime ==="
-      - python3 -c "import boto3; client=boto3.client('bedrock-agentcore-control',region_name='us-east-1'); resp=client.update_agent_runtime(agentRuntimeId='$RUNTIME_ID',agentRuntimeArtifact={'containerConfiguration':{'containerUri':'$ECR_URI/$ECR_REPO:latest'}}); print(f'AgentCore deploy triggered - status={resp.get(\"status\",\"UPDATING\")}')" || echo "AgentCore auto-deploys from latest ECR tag"
+      - CONTAINER_URI="$ECR_URI/$ECR_REPO:latest"
+      - echo "Updating runtime $RUNTIME_ID with image $CONTAINER_URI"
+      - pip install boto3 -q
+      - python3 deploy_runtime.py "$RUNTIME_ID" "$CONTAINER_URI"
       - echo "=== Pipeline Complete ==="
       - echo "Image tag = $IMAGE_TAG"
       - echo "Runtime = $RUNTIME_ID"

@@ -10,4 +10,4 @@ COPY agent/tools/ ./tools/
 
 EXPOSE 8080
 
-CMD ["opentelemetry-instrument", "python", "main.py"]
+CMD ["python", "main.py"]

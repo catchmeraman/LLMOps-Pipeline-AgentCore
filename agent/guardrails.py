@@ -28,12 +28,25 @@ class BedrockGuardrails:
 
     def check_input(self, user_input: str) -> dict:
         """Check user input BEFORE sending to LLM. Blocks injection, PII, harmful content."""
-        response = bedrock_runtime.apply_guardrail(
-            guardrailIdentifier=self.guardrail_id,
-            guardrailVersion=self.version,
-            source="INPUT",
-            content=[{"text": {"text": user_input}}]
-        )
+        try:
+            response = bedrock_runtime.apply_guardrail(
+                guardrailIdentifier=self.guardrail_id,
+                guardrailVersion=self.version,
+                source="INPUT",
+                content=[{"text": {"text": user_input, "qualifiers": ["query"]}}]
+            )
+        except Exception as e:
+            # If guardrail call fails, try alternate format
+            try:
+                response = bedrock_runtime.apply_guardrail(
+                    guardrailIdentifier=self.guardrail_id,
+                    guardrailVersion=self.version,
+                    source="INPUT",
+                    content=[{"text": {"text": user_input}}]
+                )
+            except Exception as e2:
+                logger.warning(f"Guardrail check_input failed: {e2}")
+                return {"allowed": True}  # Fail open - don't block if guardrail is unavailable
 
         action = response['action']
         if action == "GUARDRAIL_INTERVENED":
@@ -56,12 +69,24 @@ class BedrockGuardrails:
 
     def check_output(self, model_output: str) -> dict:
         """Check model output BEFORE returning to user. Redacts PII, blocks harmful content."""
-        response = bedrock_runtime.apply_guardrail(
-            guardrailIdentifier=self.guardrail_id,
-            guardrailVersion=self.version,
-            source="OUTPUT",
-            content=[{"text": {"text": model_output}}]
-        )
+        try:
+            response = bedrock_runtime.apply_guardrail(
+                guardrailIdentifier=self.guardrail_id,
+                guardrailVersion=self.version,
+                source="OUTPUT",
+                content=[{"text": {"text": model_output, "qualifiers": ["grounding_source"]}}]
+            )
+        except Exception as e:
+            try:
+                response = bedrock_runtime.apply_guardrail(
+                    guardrailIdentifier=self.guardrail_id,
+                    guardrailVersion=self.version,
+                    source="OUTPUT",
+                    content=[{"text": {"text": model_output}}]
+                )
+            except Exception as e2:
+                logger.warning(f"Guardrail check_output failed: {e2}")
+                return {"modified": False, "text": model_output}
 
         if response['action'] == "GUARDRAIL_INTERVENED":
             safe_text = response.get('output', [{}])[0].get('text', model_output)

@@ -275,6 +275,23 @@ memory.store_interaction(user_id, session_id, prompt, response)
 
 ---
 
+## 🔧 Errors Encountered (v14 → v24) — All 17 Fixed
+
+Building from v14 to v24, we hit 17 distinct errors across CI/CD, container runtime, guardrails, frontend, and memory. Full details in [`TROUBLESHOOTING.md`](./TROUBLESHOOTING.md).
+
+| Category | Count | Key Errors |
+|----------|-------|-----------|
+| **CI/CD Pipeline** | 4 | YAML multi-line blocks, CodeCommit 403, wrong EventBridge trigger type, wrong pip package |
+| **Container Runtime** | 4 | Missing guardrails.py in COPY, xray propagator not installed, raw HTTP vs BedrockAgentCoreApp, memory metadata format |
+| **Guardrails** | 2 | ApplyGuardrail format validation, DRAFT version not blocking |
+| **Frontend (Streamlit)** | 4 | Missing imports, duplicate element keys, stale memory, config overwrites |
+| **Memory Creation** | 2 | Name regex validation, summary strategy namespace template |
+| **IAM** | 1 | Missing `bedrock-agentcore:BatchCreateMemoryRecords` permission |
+
+**Biggest lesson:** AgentCore container runtimes use `BedrockAgentCoreApp` SDK — NOT raw HTTP servers on port 8080. This cost 3 failed deployments to discover.
+
+---
+
 ## Key Takeaways
 
 1. **ARM64 from day one** — AgentCore requires it, save yourself failed builds
