@@ -21,13 +21,13 @@ This is **not** a tutorial. This is a **production implementation journal** — 
 - ✅ Model monitoring (latency, tokens, cost, quality drift)
 - ✅ Prompt versioning (DynamoDB registry with staging → active → deprecated)
 - ✅ Cedar policies (fine-grained tool-level authorization)
-- ✅ Cross-session memory (AgentCore Memory)
+- ✅ Cross-session memory (Dual: AgentCore semantic + DynamoDB structured)
 
 **Skills demonstrated:**
 - Amazon Bedrock AgentCore Runtime (container-based agents)
 - Amazon Bedrock Guardrails (safety + prompt injection)
 - AgentCore Gateway + MCP Protocol
-- AgentCore Memory (cross-session persistence)
+- AgentCore Memory + DynamoDB (dual cross-session persistence)
 - Cedar Policy Language (authorization)
 - Strands Agents Framework
 - CodePipeline + CodeBuild (ARM64)
@@ -83,8 +83,8 @@ This is **not** a tutorial. This is a **production implementation journal** — 
 │  │  └──────────┘  └──────────────┘  └────────────┘  └─────────────────┘  │ │
 │  │                                                                          │ │
 │  │  ┌──────────────────┐  ┌──────────────────────┐                        │ │
-│  │  │ AgentCore Memory │  │ Prompt Registry       │                        │ │
-│  │  │ (Cross-Session)  │  │ (DynamoDB Versioned)  │                        │ │
+│  │  │ Dual Memory      │  │ Prompt Registry       │                        │ │
+│  │  │ AgentCore+DynamoDB│  │ (DynamoDB Versioned)  │                        │ │
 │  │  └──────────────────┘  └──────────────────────┘                        │ │
 │  └─────────────────────────────────────────────────────────────────────────┘ │
 │                                          │                                    │
@@ -111,7 +111,7 @@ This is **not** a tutorial. This is a **production implementation journal** — 
 | **Why Evaluation?** | A broken prompt in production = bad answers to real users. Quality gates catch this |
 | **Why MCP Gateway?** | Existing APIs shouldn't be rewritten. Gateway exposes them as agent tools instantly |
 | **Why Cedar?** | IAM controls WHO can call the agent. Cedar controls WHAT the agent can do per user |
-| **Why Memory?** | An agent that forgets every conversation is useless for real workflows |
+| **Why Memory?** | Dual architecture: AgentCore for semantic conversation context + DynamoDB for structured preferences. An agent without memory is just a chatbot |
 
 ---
 
@@ -126,7 +126,7 @@ llmops-agent/
 │   ├── agent.py                # Agent definition + system prompt
 │   ├── guardrails.py           # Bedrock Guardrails integration
 │   ├── prompt_injection.py     # Custom prompt injection defense
-│   ├── memory.py               # AgentCore Memory wrapper
+│   ├── memory.py               # Dual Memory (AgentCore semantic + DynamoDB structured)
 │   ├── monitoring.py           # CloudWatch custom metrics
 │   └── tools/
 │       ├── __init__.py
@@ -233,7 +233,7 @@ from strands import Agent
 from strands.models import BedrockModel
 from guardrails import BedrockGuardrailsWrapper
 from prompt_injection import PromptInjectionDefense
-from memory import AgentMemoryManager
+from memory import DualMemory
 
 from tools.cloudwatch_tools import get_alarms, get_metric_statistics
 from tools.ec2_tools import describe_instances, manage_instance
@@ -247,7 +247,7 @@ from tools.gateway_tools import call_external_api
 MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-sonnet-4-6")
 REGION = os.environ.get("AWS_REGION", "us-east-1")
 GUARDRAIL_ID = os.environ.get("GUARDRAIL_ID", "")
-MEMORY_ID = os.environ.get("MEMORY_ID", "")
+AGENTCORE_MEMORY_ID = os.environ.get("AGENTCORE_MEMORY_ID", "")
 
 SYSTEM_PROMPT = """You are a production DevOps AI Agent with full operational capabilities.
 
@@ -265,7 +265,7 @@ SYSTEM_PROMPT = """You are a production DevOps AI Agent with full operational ca
 - ALWAYS cite sources when using Knowledge Base
 - RESPECT Cedar policy decisions (if a tool is denied, explain to user)
 - LOG all remediation actions for audit trail
-- CHECK user's memory for context from previous sessions
+- CHECK dual memory for context (AgentCore: conversation history, DynamoDB: user preferences)
 
 ## Response Format:
 1. Acknowledge the request
@@ -286,12 +286,11 @@ def create_agent() -> Agent:
     # Initialize security layers
     guardrails = BedrockGuardrailsWrapper(guardrail_id=GUARDRAIL_ID, region=REGION)
     injection_defense = PromptInjectionDefense()
-    memory = AgentMemoryManager(memory_id=MEMORY_ID) if MEMORY_ID else None
+    memory = DualMemory()  # AgentCore (semantic) + DynamoDB (structured)
     
     # Build system prompt with memory context
     system_prompt = SYSTEM_PROMPT
-    if memory:
-        system_prompt += "\n\n## Memory:\nYou have access to cross-session memory. Check previous interactions for context."
+    system_prompt += "\n\n## Memory:\nDual memory active — AgentCore for conversation context, DynamoDB for user preferences."
     
     agent = Agent(
         model=model,
@@ -1107,7 +1106,7 @@ class LLMMonitor:
 | 9 | Guardrail blocks valid inputs | Sensitivity too high on content filter | Tune: INSULTS to MEDIUM, keep HATE/VIOLENCE at HIGH |
 | 10 | Evaluation flaky (different scores each run) | Temperature too high on judge model | Set judge temperature to 0.0 for deterministic scoring |
 | 11 | MCP Gateway auth fails intermittently | Cognito token expiration (1 hour) | Add token refresh logic before gateway calls |
-| 12 | Memory recall returns empty | Wrong namespace in memory search | Match exact namespace used during `put_memory` |
+| 12 | Memory recall returns empty | Wrong namespace or memory not ACTIVE | Verify memory status via `ListMemories` API; match exact namespace used during store |
 
 ---
 
@@ -1261,7 +1260,7 @@ git add . && git commit -m "feat: add new tool" && git push
 | 6 | **Temperature 0.0 for judge models** — deterministic evaluation scores |
 | 7 | **MCP Gateway = zero-code API integration** — don't rewrite APIs as tools |
 | 8 | **Cedar policies complement IAM** — IAM = who can call agent, Cedar = what agent can do |
-| 9 | **Memory enables real workflows** — agents without memory are just chatbots |
+| 9 | **Dual memory > single memory** — AgentCore for semantic conversations, DynamoDB for structured preferences. Each backend does what it's best at |
 | 10 | **Log everything** — structured JSON to CloudWatch, you'll need it for debugging |
 
 ---
@@ -1314,7 +1313,7 @@ Every agent has an orchestration loop: call the model → pick tools → execute
 │  BOTH SUPPORT:                                                           │
 │  • AgentCore Evaluations (LLM-as-Judge)                                 │
 │  • AgentCore Gateway (MCP tools)                                        │
-│  • AgentCore Memory (cross-session)                                      │
+│  • Dual Memory (AgentCore + DynamoDB)                                     │
 │  • AgentCore Observability (traces)                                      │
 │  • Cedar Policies (authorization)                                        │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -1625,7 +1624,7 @@ A cheap judge (Nova Lite) gives unreliable scores → worse than no evaluation. 
 | Guardrail | `<YOUR_GUARDRAIL_ID>` | ✅ READY |
 | ECR Repository | `bedrock-agentcore-llmops-agent` | ✅ 3+ images |
 | CodeBuild Project | `<YOUR_CODEBUILD_PROJECT>` | ✅ 6 green builds |
-| DynamoDB (Memory) | `llmops-agent-memory` | ✅ ACTIVE |
+| DynamoDB (Structured Memory) | `llmops-agent-memory` | ✅ ACTIVE |
 | Online Evaluation | `<YOUR_ONLINE_EVAL_ID>` | ✅ ENABLED (100%) |
 | Test Dataset | `<YOUR_DATASET_ID>` | ✅ Created |
 
