@@ -22,10 +22,12 @@
 ## 🔗 Where We Left Off (From Part 1)
 
 In [Part 1](./BLOG_1_AGENT_DEPLOYMENT.md), we deployed a production agent with:
-- ✅ Strands Agent + Nova Pro on AgentCore Runtime v11
+- ✅ Strands Agent + Nova Pro on AgentCore Runtime v24
 - ✅ 6 tools (CloudWatch, EC2, SSM, SNS)
 - ✅ Guardrails (content + PII + prompt injection)
-- ✅ CI/CD (CodeBuild ARM64 → ECR → auto-deploy)
+- ✅ CI/CD (CodePipeline V2 → CodeBuild ARM64 → ECR → auto-deploy)
+- ✅ Dual Memory (AgentCore semantic + DynamoDB structured)
+- ✅ Frontend (Streamlit at aieos.cloudopsinsights.com)
 
 **The question now:** How do we know the agent is actually doing a good job? We need automated quality measurement — evaluation.
 

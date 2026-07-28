@@ -32,7 +32,7 @@ In [Part 2](./BLOG_2_EVALUATION.md), we got 9 evaluators running on both Harness
 
 ## The Result: $3.35/Month for Everything
 
-A complete production LLMOps pipeline — agent, 6 tools, guardrails, CI/CD, 9 evaluators, memory, observability — running for **$3.35/month** (gross cost, before credits).
+A complete production LLMOps pipeline — agent, 6 tools, guardrails, CI/CD, 9 evaluators, dual memory (AgentCore + DynamoDB), observability, frontend — running for **$3.35/month** (gross cost, before credits).
 
 ![Cost Optimization Routing](generated-diagrams/09_cost_optimization_routing.png)
 
@@ -58,7 +58,7 @@ A complete production LLMOps pipeline — agent, 6 tools, guardrails, CI/CD, 9 e
 | **Evaluations (Built-in)** | BuiltIn-Output (Tier2) | $0.51 |
 | **AgentCore Runtime** | Memory (GB-hours) | $0.64 |
 | **Nova Pro (Agent)** | Input tokens (305K) | $0.30 |
-| **Memory (LTM)** | Storage | $0.27 |
+| **Memory (Dual)** | AgentCore semantic + DynamoDB structured | $0.27 |
 | **Evaluations (Custom)** | Nova Pro judge (127 runs) | $0.19 |
 | **Claude Sonnet** | Earlier failed attempts | $0.34 |
 | **Nova Pro (Agent)** | Output tokens (19K) | $0.08 |
