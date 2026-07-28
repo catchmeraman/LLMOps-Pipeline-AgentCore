@@ -6,13 +6,14 @@ Guardrail ID: <YOUR_GUARDRAIL_ID>
 Policies: Content filter + PII redaction + Prompt injection defense + Topic blocking
 """
 import boto3
+import os
 import json
 import logging
 
 logger = logging.getLogger("guardrails")
 
-GUARDRAIL_ID = "<YOUR_GUARDRAIL_ID>"
-GUARDRAIL_VERSION = "DRAFT"
+GUARDRAIL_ID = os.environ.get("GUARDRAIL_ID", "<YOUR_GUARDRAIL_ID>")
+GUARDRAIL_VERSION = os.environ.get("GUARDRAIL_VERSION", "DRAFT")
 REGION = "us-east-1"
 
 bedrock_runtime = boto3.client('bedrock-runtime', region_name=REGION)

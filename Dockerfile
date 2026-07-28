@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY agent/main.py agent/agent.py agent/observability.py agent/memory.py agent/skills.py ./
+COPY agent/main.py agent/agent.py agent/guardrails.py agent/memory.py agent/observability.py agent/skills.py ./
 COPY agent/tools/ ./tools/
 
 EXPOSE 8080
