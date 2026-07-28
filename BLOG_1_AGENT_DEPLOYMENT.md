@@ -68,7 +68,7 @@ A production-ready **DevOps AI Agent** that monitors, diagnoses, and remediates 
 
 ## Architecture
 
-![Complete Architecture](generated-diagrams/01_complete_architecture.png)
+![Complete Architecture v24 (with Frontend + CI/CD + Dual Memory)](generated-diagrams/12_complete_architecture_v24.png)
 
 ![CI/CD Pipeline](generated-diagrams/02_cicd_pipeline.png)
 
