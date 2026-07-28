@@ -1,4 +1,5 @@
-"""LLMOps Agent — Main entry point for AgentCore Runtime (port 8080)."""
+"""LLMOps Agent — Main entry point for AgentCore Runtime (port 8080).
+Integrates: Guardrails (input/output) + OTEL session baggage + Agent invocation."""
 import json
 import logging
 import traceback
@@ -6,11 +7,13 @@ import uuid
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from opentelemetry import baggage, context
 from agent import create_agent
+from guardrails import BedrockGuardrails
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("llmops-agent")
 
 agent = create_agent()
+guardrails = BedrockGuardrails()
 
 
 class AgentHandler(BaseHTTPRequestHandler):
@@ -30,35 +33,63 @@ class AgentHandler(BaseHTTPRequestHandler):
             logger.info(f"[session={session_id}] Received: {prompt[:100]}...")
 
             try:
+                # === GUARDRAIL: Check input BEFORE agent ===
+                input_check = guardrails.check_input(prompt)
+                if not input_check["allowed"]:
+                    logger.warning(f"[session={session_id}] GUARDRAIL BLOCKED: {input_check['reasons']}")
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        "response": input_check["safe_response"],
+                        "session_id": session_id,
+                        "status": "blocked",
+                        "guardrail": "input_blocked",
+                        "reasons": input_check["reasons"]
+                    }).encode())
+                    return
+
+                # === AGENT: Invoke with validated input ===
                 response = agent(prompt)
+                response_text = str(response)
+
+                # === GUARDRAIL: Check output BEFORE returning to user ===
+                output_check = guardrails.check_output(response_text)
+                if output_check["modified"]:
+                    logger.info(f"[session={session_id}] GUARDRAIL modified output (PII redacted)")
+                    response_text = output_check["text"]
+
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "response": response_text,
+                    "session_id": session_id,
+                    "status": "success",
+                    "guardrail": "output_modified" if output_check["modified"] else "passed"
+                }).encode())
+                logger.info(f"[session={session_id}] Completed successfully")
+
             finally:
                 context.detach(token)
-
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.end_headers()
-
-            result = {
-                "response": str(response),
-                "session_id": session_id,
-                "status": "success"
-            }
-            self.wfile.write(json.dumps(result).encode())
-            logger.info(f"[session={session_id}] Completed successfully")
 
         except Exception as e:
             logger.error(f"Agent error: {e}\n{traceback.format_exc()}")
             self.send_response(500)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            error_result = {"error": str(e), "status": "error"}
-            self.wfile.write(json.dumps(error_result).encode())
+            self.wfile.write(json.dumps({"error": str(e), "status": "error"}).encode())
 
     def do_GET(self):
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
         self.end_headers()
-        self.wfile.write(json.dumps({"status": "healthy", "agent": "llmops-agent", "version": "1.0"}).encode())
+        self.wfile.write(json.dumps({
+            "status": "healthy",
+            "agent": "llmops-agent",
+            "version": "1.0",
+            "guardrail": "attached"
+        }).encode())
 
     def log_message(self, format, *args):
         logger.debug(f"HTTP: {format % args}")
@@ -67,5 +98,6 @@ class AgentHandler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     server = HTTPServer(("0.0.0.0", 8080), AgentHandler)
     logger.info("LLMOps Agent starting on port 8080")
+    logger.info("Guardrails: ATTACHED (input + output filtering)")
     logger.info("Ready to receive requests from AgentCore Runtime")
     server.serve_forever()
