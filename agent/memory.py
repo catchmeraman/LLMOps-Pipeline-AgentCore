@@ -31,7 +31,7 @@ dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
 agentcore_client = boto3.client('bedrock-agentcore', region_name='us-east-1')
 
 # Configuration
-AGENTCORE_MEMORY_ID = "llmops_agent_memory-iLAWGd3iCh"
+AGENTCORE_MEMORY_ID = "<YOUR_AGENTCORE_MEMORY_ID>"
 DYNAMODB_TABLE_NAME = "llmops-agent-memory"
 
 
