@@ -153,7 +153,7 @@ Look for stream: otel-rt-logs
 
 ```bash
 aws logs get-log-events \
-  --log-group-name /aws/bedrock-agentcore/runtimes/<YOUR_RUNTIME_ID>-DEFAULT \
+  --log-group-name /aws/bedrock-agentcore/runtimes/llmops_agent-jgErJt74Gu-DEFAULT \
   --log-stream-name otel-rt-logs \
   --limit 5
 ```
@@ -208,7 +208,7 @@ from bedrock_agentcore_starter_toolkit import Evaluation
 
 eval_client = Evaluation()
 results = eval_client.run(
-    agent_id="<YOUR_RUNTIME_ID>",
+    agent_id="llmops_agent-jgErJt74Gu",
     session_id="your-session-id",
     evaluators=["Builtin.Helpfulness", "Builtin.ToolSelectionAccuracy"]
 )
@@ -224,7 +224,7 @@ import boto3, json, time
 from datetime import datetime, timedelta
 
 region = "us-east-1"
-agent_id = "<YOUR_RUNTIME_ID>"
+agent_id = "llmops_agent-jgErJt74Gu"
 session_id = "your-session-id"
 
 # Step 1: Download spans from CloudWatch
